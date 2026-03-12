@@ -34,8 +34,6 @@ Cambios realizados manualmente a "mano a mano (jeje)"
         After: exits immediately at the top if elements don't exist
         Why: less nesting, easier to read
 
-    
-
 - 6. Refactorizado "closest"
 asdffaf 6.
         Refactor 6 — closest()

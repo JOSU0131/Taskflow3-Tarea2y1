@@ -66,7 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('tasks', JSON.stringify(tasks));
     }
 
+
 // Helper: crear el elemento DOM de una tarea
+
     const BADGE_CLASSES = {
         Alta:  'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-100',
         Media: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-100',
@@ -155,8 +157,10 @@ document.addEventListener('DOMContentLoaded', () => {
         recent.slice(3).forEach(t => moreListEl?.appendChild(createTaskElement(t, false)));
         }
     } 
+
     
     // 4. Añadir Tarea
+
     if (taskForm) {
         taskForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -186,16 +190,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 5. Eliminar Tarea
-    if (taskList) {
-        taskList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('delete-btn')) {
-                const taskId = e.target.getAttribute('data-id');
-                tasks = tasks.filter(task => task.id !== taskId);
+    
+            taskList?.addEventListener('click', (e) => {
+            const btn = e.target.closest('.delete-btn');
+            if (!btn) return;
+            tasks = tasks.filter(t => t.id !== btn.dataset.id);
+                
                 saveTasks();
                 renderTasks();
-            }
-        });
-    }
+            };
+        
+    
 
     // 6. Búsqueda por texto (Tiempo real)
     if (searchInput) {
