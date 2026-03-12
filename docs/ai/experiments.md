@@ -351,4 +351,18 @@
         All changes were inside index.ngl.html.
 
 
-- 
+- Refactorizando el Taskflow con Claude IA
+    Prompt: "Mi documento index.html está así, copiado el doc index en el asitente. ¿Esta todo normal, en espcial la tailwind configuración?"
+
+    - Respuesta IA:
+         What's good:
+        Tailwind darkMode: 'class' is correctly configured
+        All IDs match Script2.js exactly (taskForm, newTaskTitle, newTaskCategory, newTaskPriority, taskList, searchInput, darkModeToggle)
+        Sidebar is responsive (lg:static for desktop, slide-in for mobile)
+        Dark mode classes everywhere (dark:bg-slate-800 etc.)
+
+        Two small things to check:
+        1 — "Todas" filter button missing data-category: ""codigo nuevo""
+        Without it, Script2.js won't know what category to filter when you click "Todas".
+
+        2   — Missing closing </footer> and </html> tags at the very end:
