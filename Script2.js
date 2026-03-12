@@ -66,6 +66,34 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('tasks', JSON.stringify(tasks));
     }
 
+// Helper: crear el elemento DOM de una tarea
+    const BADGE_CLASSES = {
+        Alta:  'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-100',
+        Media: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-100',
+        Baja:  'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100',
+    };
+
+    function getBadgeClass(priority) {
+        return `task-badge inline-flex items-center rounded-full px-2 py-1 text-[11px] font-semibold ${BADGE_CLASSES[priority] || BADGE_CLASSES.Baja}`;
+    }
+
+    function createTaskElement(task, showDeleteBtn = true) {
+        const li = document.createElement('li');
+        li.className = 'task-item flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm';
+
+        const deleteBtn = showDeleteBtn
+            ? `<button class="delete-btn inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors" data-id="${task.id}">×</button>`
+            : '';
+
+        li.innerHTML = `
+            <span class="task-title font-medium text-slate-900 dark:text-slate-50">${task.title}</span>
+            <span class="task-category text-xs text-slate-500 dark:text-slate-300">${task.category}</span>
+            <span class="${getBadgeClass(task.priority)}">${task.priority}</span>
+            ${deleteBtn}
+        `;
+        return li;
+    }
+
     // 3. Renderizar las tareas
     function renderTasks() {
         taskList.innerHTML = '';
