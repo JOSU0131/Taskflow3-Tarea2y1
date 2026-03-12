@@ -94,28 +94,26 @@ document.addEventListener('DOMContentLoaded', () => {
         return li;
     }
 
-    // 3. Renderizar las tareas
-    function renderTasks() {
-        taskList.innerHTML = '';
+// 3. Renderizar las tareas
 
-        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-        const selectedPriority = priorityFilter ? priorityFilter.value : 'all';
+    function getFilteredTasks() {
+    const searchTerm       = searchInput?.value.toLowerCase() ?? '';
+    const selectedPriority = priorityFilter?.value ?? 'all';
 
-        const filteredTasks = tasks.filter(task => {
+    return tasks
+        .filter(task => {
             const matchesCategory = currentFilter === 'Todas' || task.category === currentFilter;
             const matchesPriority = selectedPriority === 'all' || task.priority === selectedPriority;
-            const matchesSearch = task.title.toLowerCase().includes(searchTerm);
-            return matchesCategory && matchesSearch && matchesPriority;
-        });
+            const matchesSearch   = task.title.toLowerCase().includes(searchTerm);
+            return matchesCategory && matchesPriority && matchesSearch;
+        })
+        .sort((a, b) => ({ Alta: 3, Media: 2, Baja: 1 }[b.priority] - { Alta: 3, Media: 2, Baja: 1 }[a.priority]));
+    }
 
-        const priorityMap = { 'Alta': 3, 'Media': 2, 'Baja': 1 };
-
-        filteredTasks.sort((a, b) => priorityMap[b.priority] - priorityMap[a.priority]);
-
-        filteredTasks.forEach(task => {
-            taskList.appendChild(createTaskElement(task, true));
-        });
-
+   function renderTasks() {
+        if (!taskList) return;
+        taskList.innerHTML = '';
+        getFilteredTasks().forEach(task => taskList.appendChild(createTaskElement(task)));
         updateNovedades();
     }
 
@@ -142,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         recentTasksListEl.innerHTML = '';
         if (moreRecentTasksListEl) moreRecentTasksListEl.innerHTML = '';
 
-        // Renderizar hasta 3 tareas
+// Renderizar hasta 3 tareas
         const top3 = recentTasks.slice(0, 3);
         top3.forEach(task => {
             recentTasksListEl.appendChild(createTaskElement(task, false));
