@@ -2,3 +2,5 @@
 
 - 1. Refactorizado el dark mode en java.script
 
+- 2. Refactorizado "sidebar open/close unified into one toggleSidebar function" y limpieza en la referencia de elemntos, y local storage
+

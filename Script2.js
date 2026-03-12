@@ -22,77 +22,48 @@ if (toggleBtn) {
 
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
 // JavaScript source code
+
 document.addEventListener('DOMContentLoaded', () => {
-    const taskForm = document.getElementById('taskForm');
-    const taskList = document.getElementById('taskList');
-    const searchInput = document.getElementById('searchInput');
-    const categoryFilters = document.querySelectorAll('.filter-btn');
+
+    // ── ELEMENT REFERENCES ────────────────────────────────
+    const taskForm      = document.getElementById('taskForm');
+    const taskList      = document.getElementById('taskList');
+    const searchInput   = document.getElementById('searchInput');
     const priorityFilter = document.getElementById('taskFilter');
-
-    // Sidebar (menú lateral)
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    const closeMenu = document.getElementById('closeMenu');
-
-    if (menuToggle && sidebar) {
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.remove('-translate-x-full');
-            sidebar.classList.add('translate-x-0');
-        });
-    }
-
-    if (closeMenu && sidebar) {
-        closeMenu.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            sidebar.classList.remove('translate-x-0');
-        });
-    }
+    const categoryFilters = document.querySelectorAll('.filter-btn');
+    const menuToggle    = document.getElementById('menuToggle');
+    const sidebar       = document.getElementById('sidebar');
+    const closeMenu     = document.getElementById('closeMenu');
 
     let tasks = [];
     let currentFilter = 'Todas';
 
-    // 1. Cargar tareas desde LocalStorage
+    // ── SIDEBAR ───────────────────────────────────────────────────────────────
+
+    // Refactor 2: sidebar open/close unified into one toggleSidebar function
+    function toggleSidebar(open) {
+        if (!sidebar) return;
+        sidebar.classList.toggle('-translate-x-full', !open);
+        sidebar.classList.toggle('translate-x-0', open);
+    }
+
+    menuToggle?.addEventListener('click', () => toggleSidebar(true));
+    closeMenu?.addEventListener('click',  () => toggleSidebar(false));
+
+
+    // 2. Guardar tareas en LocalStorage
+    // ── LOCALSTORAGE ──────────────────────────────────────────────────────────
+
     function loadTasks() {
-        const storedTasks = localStorage.getItem('tasks');
-        if (storedTasks) {
-            tasks = JSON.parse(storedTasks);
+        const stored = localStorage.getItem('tasks');
+        if (stored) {
+            tasks = JSON.parse(stored);
             renderTasks();
         }
     }
 
-    // 2. Guardar tareas en LocalStorage
     function saveTasks() {
         localStorage.setItem('tasks', JSON.stringify(tasks));
-    }
-
-    // Helper: crear el elemento DOM de una tarea (estilado con Tailwind)
-    function createTaskElement(task, showDeleteBtn = true) {
-        const li = document.createElement('li');
-        li.className = 'task-item flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm';
-
-        let badgeClass =
-            'task-badge inline-flex items-center rounded-full px-2 py-1 text-[11px] font-semibold bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100';
-        if (task.priority === 'Alta') {
-            badgeClass =
-                'task-badge inline-flex items-center rounded-full px-2 py-1 text-[11px] font-semibold bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-100';
-        } else if (task.priority === 'Media') {
-            badgeClass =
-                'task-badge inline-flex items-center rounded-full px-2 py-1 text-[11px] font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-100';
-        }
-
-        const deleteBtnClass = 'delete-btn inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors';
-
-        let deleteBtnHTML = showDeleteBtn
-            ? `<button class="${deleteBtnClass}" data-id="${task.id}">×</button>`
-            : '';
-
-        li.innerHTML = `
-            <span class="task-title font-medium text-slate-900 dark:text-slate-50">${task.title}</span>
-            <span class="task-category text-xs text-slate-500 dark:text-slate-300">${task.category}</span>
-            <span class="${badgeClass}">${task.priority}</span>
-            ${deleteBtnHTML}
-        `;
-        return li;
     }
 
     // 3. Renderizar las tareas
@@ -231,11 +202,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Función global para cambiar entre secciones desde el sidebar
+
 window.showSection = function (sectionId) {
     const sections = ['taskSection', 'calendarSection', 'notesSection'];
     sections.forEach(id => {
         const el = document.getElementById(id);
-        if (!el) return;
-        el.style.display = (id === sectionId) ? 'block' : 'none';
+        if (!el) return; el.style.display = (id === sectionId) ? 'block' : 'none';
     });
 };
