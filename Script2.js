@@ -118,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Actualizar sección de Novedades (últimos 3 días)
+
     function updateNovedades() {
         const recentTasksCountEl = document.getElementById('recentTasksCount');
         const recentTasksListEl = document.getElementById('recentTasksList');
@@ -140,24 +141,21 @@ document.addEventListener('DOMContentLoaded', () => {
         recentTasksListEl.innerHTML = '';
         if (moreRecentTasksListEl) moreRecentTasksListEl.innerHTML = '';
 
-// Renderizar hasta 3 tareas
+        // Renderizar hasta 3 tareas
         const top3 = recentTasks.slice(0, 3);
         top3.forEach(task => {
             recentTasksListEl.appendChild(createTaskElement(task, false));
         });
 
-        // Renderizar el resto si hay más de 3
-        if (recentTasks.length > 3) {
-            moreRecentTasksContainerEl.style.display = 'block';
-            const restTasks = recentTasks.slice(3);
-            restTasks.forEach(task => {
-                moreRecentTasksListEl.appendChild(createTaskElement(task, false));
-            });
-        } else {
-            if (moreRecentTasksContainerEl) moreRecentTasksContainerEl.style.display = 'none';
-        }
-    }
 
+        // Renderizar el resto si(if) hay más de 3
+
+        if (moreEl) {
+        moreEl.style.display = recent.length > 3 ? 'block' : 'none';
+        recent.slice(3).forEach(t => moreListEl?.appendChild(createTaskElement(t, false)));
+        }
+    } 
+    
     // 4. Añadir Tarea
     if (taskForm) {
         taskForm.addEventListener('submit', (e) => {

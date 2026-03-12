@@ -28,7 +28,17 @@ Cambios realizados manualmente a "mano a mano (jeje)"
     
     Manualmente añadida "function getFilteredTasks()" y reemplazada "renderTasks()"
 
-    
+- 5. Refactorizado función "updateNovedades"
+        Refactor 5 — Guard clause
+        Before: updateNovedades() wrapped everything inside if (element exists)
+        After: exits immediately at the top if elements don't exist
+        Why: less nesting, easier to read
 
     
-asdffaf 5.
+
+- 6. Refactorizado "closest"
+asdffaf 6.
+        Refactor 6 — closest()
+        Before: e.target.classList.contains('delete-btn')
+        After: e.target.closest('.delete-btn')
+        Why: if the button has a child element like an icon inside, clicking the icon would miss the original check — closest() catches both
