@@ -1,33 +1,26 @@
 
-// Dark Mode Toggle
+// DARK MODE TOGGLE
+
 const toggleBtn = document.getElementById("darkModeToggle");
 
-// Load saved mode on page load
-if (localStorage.getItem("darkMode") === "enabled") {
-    document.body.classList.add("dark-mode");
-    // También activamos la clase 'dark' para Tailwind (bonus)
-    document.documentElement.classList.add('dark');
-    if (toggleBtn) {
-        toggleBtn.textContent = "☀️";
-    }
+// Refactor 1: extracted to named function — easier to read and reuse
+function applyDarkMode(enabled) {
+    document.body.classList.toggle("dark-mode", enabled);
+    document.documentElement.classList.toggle("dark", enabled);
+    if (toggleBtn) toggleBtn.textContent = enabled ? "☀️" : "🌙";
+    localStorage.setItem("darkMode", enabled ? "enabled" : "disabled");
 }
 
-// Toggle dark mode on click
+// Load saved preference on page load
+applyDarkMode(localStorage.getItem("darkMode") === "enabled");
+
 if (toggleBtn) {
     toggleBtn.addEventListener("click", () => {
-        const isDark = document.body.classList.toggle("dark-mode");
-        document.documentElement.classList.toggle('dark', isDark);
-
-        if (isDark) {
-            toggleBtn.textContent = "☀️";
-            localStorage.setItem("darkMode", "enabled");
-        } else {
-            toggleBtn.textContent = "🌙";
-            localStorage.setItem("darkMode", "disabled");
-        }
+        applyDarkMode(!document.body.classList.contains("dark-mode"));
     });
 }
 
+// ── MAIN APP ──────────────────────────────────────────────────────────────────
 // JavaScript source code
 document.addEventListener('DOMContentLoaded', () => {
     const taskForm = document.getElementById('taskForm');

@@ -351,7 +351,7 @@
         All changes were inside index.ngl.html.
 
 
-- Refactorizando el Taskflow con Claude IA
+- Revisión de codigo y Refactorizando el Taskflow con Claude IA
     Prompt: "Mi documento index.html está así, copiado el doc index en el asitente. ¿Esta todo normal, en espcial la tailwind configuración?"
 
     - Respuesta IA:
@@ -365,4 +365,15 @@
         1 — "Todas" filter button missing data-category: ""codigo nuevo""
         Without it, Script2.js won't know what category to filter when you click "Todas".
 
-        2   — Missing closing </footer> and </html> tags at the very end:
+    - Refactorizando el Taskflow 
+        Prompt: "Mira este doc java: , busca errores y refactoriza al menos cinco funciones"
+
+        Respuesta resumida:
+            Refactor 1 — applyDarkMode() extracted dark mode logic into one reusable function instead of repeating it twice.
+            Refactor 2 — toggleSidebar() unified open/close sidebar into one function with a boolean parameter.
+            Refactor 3 — BADGE_CLASSES lookup object replaced the if/else chain with a simple dictionary — cleaner and easier to add new priorities.
+            Refactor 4 — getFilteredTasks() extracted filtering and sorting out of renderTasks() so each function does only one job.
+            Refactor 5 — Guard clause in updateNovedades() exits early at the top instead of wrapping everything in nested if blocks.
+            Refactor 6 — closest('.delete-btn') safer than classList.contains() when buttons have nested child elements like icons.
+
+ccccc
