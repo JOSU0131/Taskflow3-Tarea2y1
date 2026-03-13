@@ -27,6 +27,12 @@ Dia 10. Viernes
             Cambio 2 — script2.js: llamar renderCalendar() en el init
             Cambio 3 — index.html: actualizar la sección calendario
 
+        4. Funcionalidad Notas persistentes
+        Nota: Procedo a compara el codigo y a editar con ayuda de IA claude
+            Cambio 1 — en index.html: actualizar la sección notas
+            Cambio 2 — en script2.js: añadir función setupNotes
+            Cambio 3 — en script2.js: llamar setupNotes() en el init
+
         
 
 

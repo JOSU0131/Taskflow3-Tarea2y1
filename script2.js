@@ -364,7 +364,42 @@ ${deleteBtn}
     document.getElementById('nextMonth')?.addEventListener('click', () => renderCalendar(new Date(year, month + 1, 1)));
     }
 
+    function setupNotes() {
+        const notesEl  = document.getElementById('notes');
+        const saveBtn  = document.getElementById('saveNotesBtn');
+        const statusEl = document.getElementById('notesStatus');
+
+        if (!notesEl) return;
+
+        // Cargar notas guardadas
+        notesEl.value = localStorage.getItem('userNotes') || '';
+
+        // Auto-guardar al escribir
+        let saveTimeout;
+        notesEl.addEventListener('input', () => {
+            clearTimeout(saveTimeout);
+            if (statusEl) statusEl.textContent = 'Editando...';
+            saveTimeout = setTimeout(() => {
+                localStorage.setItem('userNotes', notesEl.value);
+                if (statusEl) {
+                    statusEl.textContent = '✅ Guardado automáticamente';
+                    setTimeout(() => { statusEl.textContent = ''; }, 2000);
+                }
+            }, 800);
+        });
+
+        // Guardar manualmente
+        saveBtn?.addEventListener('click', () => {
+            localStorage.setItem('userNotes', notesEl.value);
+            if (statusEl) {
+                statusEl.textContent = '✅ Notas guardadas';
+                setTimeout(() => { statusEl.textContent = ''; }, 2000);
+            }
+        });
+}
+
     loadTasks();
+    setupNotes();
     renderCalendar();
 });
 
