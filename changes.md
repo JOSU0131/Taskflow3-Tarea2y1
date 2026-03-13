@@ -35,7 +35,6 @@ Cambios realizados manualmente a "mano a mano (jeje)"
         Why: less nesting, easier to read
 
 - 6. Refactorizado "closest"
-asdffaf 6.
         Refactor 6 — closest()
         Before: e.target.classList.contains('delete-btn')
         After: e.target.closest('.delete-btn')

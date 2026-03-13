@@ -152,9 +152,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Renderizar el resto si(if) hay más de 3
 
-        if (moreEl) {
-        moreEl.style.display = recent.length > 3 ? 'block' : 'none';
-        recent.slice(3).forEach(t => moreListEl?.appendChild(createTaskElement(t, false)));
+        if (moreRecentTasksContainerEl) {
+        moreRecentTasksContainerEl.style.display = recentTasks.length > 3 ? 'block' : 'none';
+        recentTasks.slice(3).forEach(t => moreRecentTasksListEl?.appendChild(createTaskElement(t, false)));
         }
     } 
 
@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 saveTasks();
                 renderTasks();
-            };
+            });
         
     
 
