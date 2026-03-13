@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let tasks = [];
     let currentFilter = 'Todas';
+    let isCardView    = false;
 
     // ── SIDEBAR ───────────────────────────────────────────────────────────────
 
@@ -47,8 +48,19 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebar.classList.toggle('translate-x-0', open);
     }
 
-    menuToggle?.addEventListener('click', () => toggleSidebar(true));
-    closeMenu?.addEventListener('click',  () => toggleSidebar(false));
+menuToggle?.addEventListener('click', () => toggleSidebar(true));
+closeMenu?.addEventListener('click',  () => toggleSidebar(false));
+
+viewToggleBtn?.addEventListener('click', () => {
+    isCardView = !isCardView;
+    viewToggleBtn.textContent = isCardView ? '☰ Lista' : '⊞ Tarjetas';
+    if (taskList) {
+        taskList.className = isCardView
+            ? 'grid grid-cols-2 gap-3 p-1'
+            : 'task-list space-y-2';
+    }
+    renderTasks();
+});
 
 
     // 2. Guardar tareas en LocalStorage
@@ -80,21 +92,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function createTaskElement(task, showDeleteBtn = true) {
-        const li = document.createElement('li');
-        li.className = 'task-item flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm';
+    return isCardView
+        ? createTaskCard(task, showDeleteBtn)
+        : createTaskListItem(task, showDeleteBtn);
+}
 
-        const deleteBtn = showDeleteBtn
-            ? `<button class="delete-btn inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors" data-id="${task.id}">×</button>`
-            : '';
+function createTaskListItem(task, showDeleteBtn) {
+    const li = document.createElement('li');
+    li.className = 'task-item flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm';
+    li.dataset.id = task.id;
 
-        li.innerHTML = `
-            <span class="task-title font-medium text-slate-900 dark:text-slate-50">${task.title}</span>
-            <span class="task-category text-xs text-slate-500 dark:text-slate-300">${task.category}</span>
-            <span class="${getBadgeClass(task.priority)}">${task.priority}</span>
-            ${deleteBtn}
-        `;
-        return li;
-    }
+    const deleteBtn = showDeleteBtn
+        ? `<button class="delete-btn inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors" data-id="${task.id}">×</button>`
+        : '';
+
+    li.innerHTML = `
+        <span class="task-title font-medium text-slate-900 dark:text-slate-50">${task.title}</span>
+        <span class="task-category text-xs text-slate-500 dark:text-slate-300">${task.category}</span>
+        <span class="${getBadgeClass(task.priority)}">${task.priority}</span>
+        <div class="flex gap-1">${deleteBtn}</div>
+    `;
+    return li;
+}
+
+function createTaskCard(task, showDeleteBtn) {
+    const div = document.createElement('div');
+    div.className = 'task-card bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex flex-col gap-2';
+    div.dataset.id = task.id;
+
+    const priorityIcon = { Alta: '🔴', Media: '🟡', Baja: '🟢' }[task.priority] || '⚪';
+    const categoryIcon = { Trabajo: '💼', Formación: '📚', Equipo: '👥', Personal: '👤' }[task.category] || '📌';
+
+    const deleteBtn = showDeleteBtn
+        ? `<button class="delete-btn mt-1 w-full text-xs bg-red-100 text-red-600 hover:bg-red-200 rounded-lg py-1 transition-colors" data-id="${task.id}">× Eliminar</button>`
+        : '';
+
+    div.innerHTML = `
+        <div class="flex items-start justify-between">
+            <span class="font-semibold text-slate-900 dark:text-slate-50 text-sm">${task.title}</span>
+            <span class="text-lg">${priorityIcon}</span>
+        </div>
+        <div class="text-xs text-slate-500 dark:text-slate-400">${categoryIcon} ${task.category}</div>
+        <span class="${getBadgeClass(task.priority)} self-start">${task.priority}</span>
+        ${deleteBtn}
+    `;
+    return div;
+}
 
 // 3. Renderizar las tareas
 
