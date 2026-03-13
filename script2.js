@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let tasks = [];
     let currentFilter = 'Todas';
     let isCardView    = false;
+    let editingTaskId = null;
 
     // ── SIDEBAR ───────────────────────────────────────────────────────────────
 
@@ -102,6 +103,9 @@ function createTaskListItem(task, showDeleteBtn) {
     li.className = 'task-item flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm';
     li.dataset.id = task.id;
 
+    const editBtn = showDeleteBtn
+    ? `<button class="edit-btn inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-400 text-white text-xs font-bold hover:bg-indigo-600 transition-colors" data-id="${task.id}">✎</button>`
+    : '';
     const deleteBtn = showDeleteBtn
         ? `<button class="delete-btn inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors" data-id="${task.id}">×</button>`
         : '';
@@ -110,7 +114,7 @@ function createTaskListItem(task, showDeleteBtn) {
         <span class="task-title font-medium text-slate-900 dark:text-slate-50">${task.title}</span>
         <span class="task-category text-xs text-slate-500 dark:text-slate-300">${task.category}</span>
         <span class="${getBadgeClass(task.priority)}">${task.priority}</span>
-        <div class="flex gap-1">${deleteBtn}</div>
+        <div class="flex gap-1">${editBtn}${deleteBtn}</div>
     `;
     return li;
 }
@@ -123,6 +127,9 @@ function createTaskCard(task, showDeleteBtn) {
     const priorityIcon = { Alta: '🔴', Media: '🟡', Baja: '🟢' }[task.priority] || '⚪';
     const categoryIcon = { Trabajo: '💼', Formación: '📚', Equipo: '👥', Personal: '👤' }[task.category] || '📌';
 
+    const editBtn = showDeleteBtn
+    ? `<button class="edit-btn mt-1 w-full text-xs bg-indigo-100 text-indigo-600 hover:bg-indigo-200 rounded-lg py-1 transition-colors" data-id="${task.id}">✎ Editar</button>`
+    : '';
     const deleteBtn = showDeleteBtn
         ? `<button class="delete-btn mt-1 w-full text-xs bg-red-100 text-red-600 hover:bg-red-200 rounded-lg py-1 transition-colors" data-id="${task.id}">× Eliminar</button>`
         : '';
@@ -134,12 +141,40 @@ function createTaskCard(task, showDeleteBtn) {
         </div>
         <div class="text-xs text-slate-500 dark:text-slate-400">${categoryIcon} ${task.category}</div>
         <span class="${getBadgeClass(task.priority)} self-start">${task.priority}</span>
-        ${deleteBtn}
+        ${editBtn}
+${deleteBtn}
     `;
     return div;
 }
 
 // 3. Renderizar las tareas
+
+    function startEditTask(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    editingTaskId = taskId;
+
+    const titleInput    = document.getElementById('newTaskTitle');
+    const categoryInput = document.getElementById('newTaskCategory');
+    const priorityInput = document.getElementById('newTaskPriority');
+    const submitBtn     = taskForm?.querySelector('button[type="submit"]');
+
+    if (titleInput)    titleInput.value    = task.title;
+    if (categoryInput) categoryInput.value = task.category;
+    if (priorityInput) priorityInput.value = task.priority;
+    if (submitBtn)     submitBtn.textContent = '💾 Guardar cambios';
+
+    titleInput?.focus();
+    taskForm?.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelEdit() {
+    editingTaskId = null;
+    const submitBtn = taskForm?.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.textContent = 'Añadir tarea';
+    taskForm?.reset();
+    }
 
     function getFilteredTasks() {
     const searchTerm       = searchInput?.value.toLowerCase() ?? '';
@@ -206,41 +241,53 @@ function createTaskCard(task, showDeleteBtn) {
 
     if (taskForm) {
         taskForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+            e.preventDefault();
 
-        const titleInput = document.getElementById('newTaskTitle');
-        const categoryInput = document.getElementById('newTaskCategory');
-        const priorityInput = document.getElementById('newTaskPriority');
+            const titleInput = document.getElementById('newTaskTitle');
+            const categoryInput = document.getElementById('newTaskCategory');
+            const priorityInput = document.getElementById('newTaskPriority');
+            const title         = titleInput.value.trim();
+    
+        if (!title) return;
 
-        const newTask = {
-            id: Date.now().toString(),
-            title: titleInput.value.trim(),
-            category: categoryInput.value,
-            priority: priorityInput.value
-        };
-
-        if (newTask.title !== '') {
-            tasks.push(newTask);
-            saveTasks();
-            renderTasks();
-
-            // Limpiar formulario
-            titleInput.value = '';
-            categoryInput.value = 'Trabajo';
-            priorityInput.value = 'Alta';
+        if (editingTaskId) {
+            tasks = tasks.map(t => t.id === editingTaskId
+                ? { ...t, title, category: categoryInput.value, priority: priorityInput.value }
+                : t
+            );
+            cancelEdit();
+        } else {
+            tasks.push({
+                id:       Date.now().toString(),
+                title,
+                category: categoryInput.value,
+                priority: priorityInput.value,
+            });
         }
+
+        saveTasks();
+        renderTasks();
+        titleInput.value    = '';
+        categoryInput.value = 'Trabajo';
+        priorityInput.value = 'Alta';
         });
     }
 
     // 5. Eliminar Tarea
     
             taskList?.addEventListener('click', (e) => {
-            const btn = e.target.closest('.delete-btn');
-            if (!btn) return;
-            tasks = tasks.filter(t => t.id !== btn.dataset.id);
-                
-                saveTasks();
-                renderTasks();
+                const deleteBtn = e.target.closest('.delete-btn');
+                const editBtn   = e.target.closest('.edit-btn');
+
+                if (deleteBtn) {
+                    tasks = tasks.filter(t => t.id !== deleteBtn.dataset.id);
+                    saveTasks();
+                    renderTasks();
+                }
+
+                if (editBtn) {
+                    startEditTask(editBtn.dataset.id);
+                }
             });
         
     
