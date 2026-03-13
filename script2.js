@@ -317,7 +317,55 @@ ${deleteBtn}
         });
     });
 
+    function renderCalendar(date = new Date()) {
+    const calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+
+    const year  = date.getFullYear();
+    const month = date.getMonth();
+
+    const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                        'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const dayNames   = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay  = new Date(year, month + 1, 0);
+    const startDay = (firstDay.getDay() + 6) % 7;
+    const today    = new Date();
+
+    let html = `
+        <div class="flex items-center justify-between mb-4">
+            <button id="prevMonth" class="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-sm font-medium transition-colors">← Anterior</button>
+            <h3 class="font-bold text-slate-800 dark:text-slate-100">${monthNames[month]} ${year}</h3>
+            <button id="nextMonth" class="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-sm font-medium transition-colors">Siguiente →</button>
+        </div>
+        <div class="grid grid-cols-7 gap-1 mb-2">
+            ${dayNames.map(d => `<div class="text-center text-xs font-semibold text-slate-500 py-1">${d}</div>`).join('')}
+        </div>
+        <div class="grid grid-cols-7 gap-1">
+    `;
+
+    for (let i = 0; i < startDay; i++) {
+        html += `<div class="h-9 rounded-lg"></div>`;
+    }
+
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+        const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+        const cls = isToday
+            ? 'bg-indigo-600 text-white font-bold'
+            : 'hover:bg-indigo-100 dark:hover:bg-indigo-900 text-slate-700 dark:text-slate-200';
+        html += `<div class="h-9 flex items-center justify-center rounded-lg text-sm cursor-pointer transition-colors ${cls}">${day}</div>`;
+    }
+
+    html += `</div>`;
+    calendarEl.innerHTML = html;
+
+    document.getElementById('prevMonth')?.addEventListener('click', () => renderCalendar(new Date(year, month - 1, 1)));
+    document.getElementById('nextMonth')?.addEventListener('click', () => renderCalendar(new Date(year, month + 1, 1)));
+    }
+
     loadTasks();
+    renderCalendar();
 });
 
 // Función global para cambiar entre secciones desde el sidebar
