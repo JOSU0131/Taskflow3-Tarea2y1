@@ -376,4 +376,3 @@
             Refactor 5 — Guard clause in updateNovedades() exits early at the top instead of wrapping everything in nested if blocks.
             Refactor 6 — closest('.delete-btn') safer than classList.contains() when buttons have nested child elements like icons.
 
-ccccc
