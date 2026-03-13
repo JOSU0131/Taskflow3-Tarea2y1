@@ -39,3 +39,4 @@ Cambios realizados manualmente a "mano a mano (jeje)"
         Before: e.target.classList.contains('delete-btn')
         After: e.target.closest('.delete-btn')
         Why: if the button has a child element like an icon inside, clicking the icon would miss the original check — closest() catches both
+
