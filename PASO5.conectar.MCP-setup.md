@@ -143,4 +143,4 @@ herramientas de IA y se resuelven fácilmente en entornos de producción.
 
 *Documentado durante el Taller de IA — Marzo 2026*
 
-Nota: Probar el copilot Github, recomendado por compañero, pero antes avanzaré en la tarea
+Nota: Probar el copilot Github, recomendado por compañero, pero antes avanzaré en la tarea 2 general.
