@@ -144,6 +144,14 @@
                 <section id="calendarSection" style="display:none;">
                     <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg px-5 py-4">
                         <h2 class="text-lg font-semibold mb-3">📅 Calendario</h2>
+                        <div class="mb-4 flex gap-2 items-center">
+                            <input type="text" id="calendarSearch" placeholder="Buscar tarea por nombre..."
+                                class="flex-1 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+                        </div>
+                        <div id="calendarDayTasks" class="hidden mt-4">
+                            <h3 class="text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2" id="calendarDayTitle"></h3>
+                            <ul id="calendarDayList" class="space-y-1 text-sm"></ul>
+                        </div>
                         <div id="calendar" class="min-h-[200px]"></div>
                     </div>
                 </section>

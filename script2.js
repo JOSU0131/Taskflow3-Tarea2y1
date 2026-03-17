@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuToggle    = document.getElementById('menuToggle');
     const sidebar       = document.getElementById('sidebar');
     const closeMenu     = document.getElementById('closeMenu');
+    const viewToggleBtn = document.getElementById('viewToggleBtn');
 
     let tasks = [];
     let currentFilter = 'Todas';
@@ -298,12 +299,28 @@ ${deleteBtn}
             renderTasks();
         });
     }
+    searchInput?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') renderTasks();
+    });
 
     if (priorityFilter) {
         priorityFilter.addEventListener('change', () => {
             renderTasks();
         });
     }
+
+    document.getElementById('calendarSearch')?.addEventListener('input', e => {
+        const term = e.target.value.toLowerCase().trim();
+        if (!term) return;
+        const match = tasks.find(t => t.title.toLowerCase().includes(term));
+        if (match) {
+            const d = new Date(parseInt(match.id));
+            renderCalendar(d);
+            setTimeout(() => {
+                document.querySelector(`[data-day="${d.getDate()}"]`)?.click();
+            }, 50);
+        }
+    });
 
     // 7. Filtro por categorías
     categoryFilters.forEach(btn => {
@@ -317,52 +334,10 @@ ${deleteBtn}
         });
     });
 
-    function renderCalendar(date = new Date()) {
-    const calendarEl = document.getElementById('calendar');
-    if (!calendarEl) return;
+    
+    
 
-    const year  = date.getFullYear();
-    const month = date.getMonth();
-
-    const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-                        'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-    const dayNames   = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
-
-    const firstDay = new Date(year, month, 1);
-    const lastDay  = new Date(year, month + 1, 0);
-    const startDay = (firstDay.getDay() + 6) % 7;
-    const today    = new Date();
-
-    let html = `
-        <div class="flex items-center justify-between mb-4">
-            <button id="prevMonth" class="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-sm font-medium transition-colors">← Anterior</button>
-            <h3 class="font-bold text-slate-800 dark:text-slate-100">${monthNames[month]} ${year}</h3>
-            <button id="nextMonth" class="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-sm font-medium transition-colors">Siguiente →</button>
-        </div>
-        <div class="grid grid-cols-7 gap-1 mb-2">
-            ${dayNames.map(d => `<div class="text-center text-xs font-semibold text-slate-500 py-1">${d}</div>`).join('')}
-        </div>
-        <div class="grid grid-cols-7 gap-1">
-    `;
-
-    for (let i = 0; i < startDay; i++) {
-        html += `<div class="h-9 rounded-lg"></div>`;
-    }
-
-    for (let day = 1; day <= lastDay.getDate(); day++) {
-        const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-        const cls = isToday
-            ? 'bg-indigo-600 text-white font-bold'
-            : 'hover:bg-indigo-100 dark:hover:bg-indigo-900 text-slate-700 dark:text-slate-200';
-        html += `<div class="h-9 flex items-center justify-center rounded-lg text-sm cursor-pointer transition-colors ${cls}">${day}</div>`;
-    }
-
-    html += `</div>`;
-    calendarEl.innerHTML = html;
-
-    document.getElementById('prevMonth')?.addEventListener('click', () => renderCalendar(new Date(year, month - 1, 1)));
-    document.getElementById('nextMonth')?.addEventListener('click', () => renderCalendar(new Date(year, month + 1, 1)));
-    }
+    
 
     function setupNotes() {
         const notesEl  = document.getElementById('notes');
@@ -396,7 +371,93 @@ ${deleteBtn}
                 setTimeout(() => { statusEl.textContent = ''; }, 2000);
             }
         });
-}
+    }
+
+    function renderCalendar(date = new Date()) {
+    const calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+
+    const year  = date.getFullYear();
+    const month = date.getMonth();
+
+    const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                        'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const dayNames   = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay  = new Date(year, month + 1, 0);
+    const startDay = (firstDay.getDay() + 6) % 7;
+    const today    = new Date();
+
+    let html = `
+        <div class="flex items-center justify-between mb-4">
+            <button id="prevMonth" class="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-sm font-medium transition-colors">← Anterior</button>
+            <h3 class="font-bold text-slate-800 dark:text-slate-100">${monthNames[month]} ${year}</h3>
+            <button id="nextMonth" class="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-sm font-medium transition-colors">Siguiente →</button>
+        </div>
+        <div class="grid grid-cols-7 gap-1 mb-2">
+            ${dayNames.map(d => `<div class="text-center text-xs font-semibold text-slate-500 py-1">${d}</div>`).join('')}
+        </div>
+        <div class="grid grid-cols-7 gap-1">
+    `;
+
+    for (let i = 0; i < startDay; i++) {
+        html += `<div class="h-9 rounded-lg"></div>`;
+    }
+
+    // Días que tienen tareas este mes
+    const taskDays = new Set(tasks.map(t => {
+    const d = new Date(parseInt(t.id));
+    return (d.getMonth() === month && d.getFullYear() === year) ? d.getDate() : null;
+    }).filter(Boolean));
+
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+    const isToday  = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+    const hasTasks = taskDays.has(day);
+    const cls = isToday
+        ? 'bg-indigo-600 text-white font-bold'
+        : 'hover:bg-indigo-100 dark:hover:bg-indigo-900 text-slate-700 dark:text-slate-200';
+    const dot = hasTasks
+        ? `<span class="block w-1 h-1 rounded-full bg-indigo-400 mx-auto mt-0.5"></span>`
+        : '';
+    html += `<div class="h-9 flex flex-col items-center justify-center rounded-lg text-sm cursor-pointer transition-colors ${cls}" data-day="${day}">${day}${dot}</div>`;
+    }
+
+    html += `</div>`;
+    calendarEl.innerHTML = html;
+
+    document.getElementById('prevMonth')?.addEventListener('click', () => renderCalendar(new Date(year, month - 1, 1)));
+    document.getElementById('nextMonth')?.addEventListener('click', () => renderCalendar(new Date(year, month + 1, 1)));
+    
+    // Click en día — muestra tareas de ese día
+        
+        calendarEl.querySelectorAll('[data-day]').forEach(dayEl => {
+            dayEl.addEventListener('click', () => {
+                const day = parseInt(dayEl.dataset.day);
+                const dayTasks = tasks.filter(t => {
+                    const d = new Date(parseInt(t.id));
+                    return d.getDate() === day && d.getMonth() === month && d.getFullYear() === year;
+                });
+
+                const titleEl = document.getElementById('calendarDayTitle');
+                const listEl  = document.getElementById('calendarDayList');
+                const panel   = document.getElementById('calendarDayTasks');
+                if (!listEl || !panel) return;
+
+                if (titleEl) titleEl.textContent = `Tareas del ${day} de ${monthNames[month]}`;
+                listEl.innerHTML = dayTasks.length === 0
+                    ? '<li class="text-slate-400 text-xs italic">Sin tareas este día</li>'
+                    : dayTasks.map(t => `
+                        <li class="flex items-center gap-2 text-xs py-1">
+                            <span class="w-2 h-2 rounded-full ${{Alta:'bg-red-500',Media:'bg-amber-400',Baja:'bg-green-500'}[t.priority]}"></span>
+                            <span>${t.title}</span>
+                            <span class="text-slate-400">${t.category}</span>
+                        </li>`).join('');
+
+                panel.classList.remove('hidden');
+            });
+        });
+    }
 
     loadTasks();
     setupNotes();
