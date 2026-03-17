@@ -1,9 +1,13 @@
 
-// DARK MODE TOGGLE
+// ── MODO OSCURO ───────────────────────────────────────────────────────────────
 
 const toggleBtn = document.getElementById("darkModeToggle");
 
-// Refactor 1: extracted to named function — easier to read and reuse
+/**
+ * Activa o desactiva el modo oscuro.
+ * Guarda la preferencia en localStorage para recordarla al recargar.
+ * @param {boolean} enabled - true = modo oscuro, false = modo claro
+ */
 function applyDarkMode(enabled) {
     document.body.classList.toggle("dark-mode", enabled);
     document.documentElement.classList.toggle("dark", enabled);
@@ -11,7 +15,7 @@ function applyDarkMode(enabled) {
     localStorage.setItem("darkMode", enabled ? "enabled" : "disabled");
 }
 
-// Load saved preference on page load
+// Aplicar preferencia guardada al cargar la página
 applyDarkMode(localStorage.getItem("darkMode") === "enabled");
 
 if (toggleBtn) {
@@ -20,22 +24,22 @@ if (toggleBtn) {
     });
 }
 
-// ── MAIN APP ──────────────────────────────────────────────────────────────────
-// JavaScript source code
+// ── APP PRINCIPAL ─────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // ── ELEMENT REFERENCES ────────────────────────────────
-    const taskForm      = document.getElementById('taskForm');
-    const taskList      = document.getElementById('taskList');
-    const searchInput   = document.getElementById('searchInput');
-    const priorityFilter = document.getElementById('taskFilter');
+    // ── REFERENCIAS A ELEMENTOS DEL HTML ──────────────────────────────────────
+    const taskForm        = document.getElementById('taskForm');
+    const taskList        = document.getElementById('taskList');
+    const searchInput     = document.getElementById('searchInput');
+    const priorityFilter  = document.getElementById('taskFilter');
     const categoryFilters = document.querySelectorAll('.filter-btn');
-    const menuToggle    = document.getElementById('menuToggle');
-    const sidebar       = document.getElementById('sidebar');
-    const closeMenu     = document.getElementById('closeMenu');
-    const viewToggleBtn = document.getElementById('viewToggleBtn');
+    const menuToggle      = document.getElementById('menuToggle');
+    const sidebar         = document.getElementById('sidebar');
+    const closeMenu       = document.getElementById('closeMenu');
+    const viewToggleBtn   = document.getElementById('viewToggleBtn');
 
+    // Variables de estado
     let tasks = [];
     let currentFilter = 'Todas';
     let isCardView    = false;
@@ -43,31 +47,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── SIDEBAR ───────────────────────────────────────────────────────────────
 
-    // Refactor 2: sidebar open/close unified into one toggleSidebar function
+    /**
+     * Abre o cierra el sidebar en móvil.
+     * @param {boolean} open - true = abrir, false = cerrar
+     */
     function toggleSidebar(open) {
         if (!sidebar) return;
         sidebar.classList.toggle('-translate-x-full', !open);
         sidebar.classList.toggle('translate-x-0', open);
     }
 
-menuToggle?.addEventListener('click', () => toggleSidebar(true));
-closeMenu?.addEventListener('click',  () => toggleSidebar(false));
+    menuToggle?.addEventListener('click', () => toggleSidebar(true));
+    closeMenu?.addEventListener('click',  () => toggleSidebar(false));
 
-viewToggleBtn?.addEventListener('click', () => {
-    isCardView = !isCardView;
-    viewToggleBtn.textContent = isCardView ? '☰ Lista' : '⊞ Tarjetas';
-    if (taskList) {
-        taskList.className = isCardView
-            ? 'grid grid-cols-2 gap-3 p-1'
-            : 'task-list space-y-2';
-    }
-    renderTasks();
-});
+    // Alterna entre vista lista y vista tarjetas
+    viewToggleBtn?.addEventListener('click', () => {
+        isCardView = !isCardView;
+        viewToggleBtn.textContent = isCardView ? '☰ Lista' : '⊞ Tarjetas';
+        if (taskList) {
+            taskList.className = isCardView
+                ? 'grid grid-cols-2 gap-3 p-1'
+                : 'task-list space-y-2';
+        }
+        renderTasks();
+    });
 
-
-    // 2. Guardar tareas en LocalStorage
     // ── LOCALSTORAGE ──────────────────────────────────────────────────────────
 
+    // Carga las tareas guardadas y las muestra
     function loadTasks() {
         const stored = localStorage.getItem('tasks');
         if (stored) {
@@ -76,239 +83,260 @@ viewToggleBtn?.addEventListener('click', () => {
         }
     }
 
+    // Guarda el array de tareas actual en localStorage
     function saveTasks() {
         localStorage.setItem('tasks', JSON.stringify(tasks));
     }
 
+    // ── BADGES DE PRIORIDAD ───────────────────────────────────────────────────
 
-// Helper: crear el elemento DOM de una tarea
-
+    // Clases de color para cada nivel de prioridad
     const BADGE_CLASSES = {
         Alta:  'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-100',
         Media: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-100',
         Baja:  'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100',
     };
 
+    /**
+     * Devuelve las clases Tailwind del badge según la prioridad.
+     * @param {string} priority - 'Alta', 'Media' o 'Baja'
+     * @returns {string}
+     */
     function getBadgeClass(priority) {
         return `task-badge inline-flex items-center rounded-full px-2 py-1 text-[11px] font-semibold ${BADGE_CLASSES[priority] || BADGE_CLASSES.Baja}`;
     }
 
+    // ── CREAR ELEMENTOS DE TAREA ──────────────────────────────────────────────
+
+    /**
+     * Devuelve un elemento lista o tarjeta según la vista activa.
+     * @param {object} task
+     * @param {boolean} showDeleteBtn - muestra botones de acción
+     */
     function createTaskElement(task, showDeleteBtn = true) {
-    return isCardView
-        ? createTaskCard(task, showDeleteBtn)
-        : createTaskListItem(task, showDeleteBtn);
-}
+        return isCardView
+            ? createTaskCard(task, showDeleteBtn)
+            : createTaskListItem(task, showDeleteBtn);
+    }
 
-function createTaskListItem(task, showDeleteBtn) {
-    const li = document.createElement('li');
-    li.className = 'task-item flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm';
-    li.dataset.id = task.id;
+    // Crea una fila de lista para una tarea
+    function createTaskListItem(task, showDeleteBtn) {
+        const li = document.createElement('li');
+        li.className = 'task-item flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm';
+        li.dataset.id = task.id;
 
-    const editBtn = showDeleteBtn
-    ? `<button class="edit-btn inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-400 text-white text-xs font-bold hover:bg-indigo-600 transition-colors" data-id="${task.id}">✎</button>`
-    : '';
-    const deleteBtn = showDeleteBtn
-        ? `<button class="delete-btn inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors" data-id="${task.id}">×</button>`
-        : '';
+        const editBtn = showDeleteBtn
+            ? `<button class="edit-btn inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-400 text-white text-xs font-bold hover:bg-indigo-600 transition-colors" data-id="${task.id}">✎</button>`
+            : '';
+        const deleteBtn = showDeleteBtn
+            ? `<button class="delete-btn inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors" data-id="${task.id}">×</button>`
+            : '';
 
-    li.innerHTML = `
-        <span class="task-title font-medium text-slate-900 dark:text-slate-50">${task.title}</span>
-        <span class="task-category text-xs text-slate-500 dark:text-slate-300">${task.category}</span>
-        <span class="${getBadgeClass(task.priority)}">${task.priority}</span>
-        <div class="flex gap-1">${editBtn}${deleteBtn}</div>
-    `;
-    return li;
-}
+        li.innerHTML = `
+            <span class="task-title font-medium text-slate-900 dark:text-slate-50">${task.title}</span>
+            <span class="task-category text-xs text-slate-500 dark:text-slate-300">${task.category}</span>
+            <span class="${getBadgeClass(task.priority)}">${task.priority}</span>
+            <div class="flex gap-1">${editBtn}${deleteBtn}</div>
+        `;
+        return li;
+    }
 
-function createTaskCard(task, showDeleteBtn) {
-    const div = document.createElement('div');
-    div.className = 'task-card bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex flex-col gap-2';
-    div.dataset.id = task.id;
+    // Crea una tarjeta visual para una tarea
+    function createTaskCard(task, showDeleteBtn) {
+        const div = document.createElement('div');
+        div.className = 'task-card bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex flex-col gap-2';
+        div.dataset.id = task.id;
 
-    const priorityIcon = { Alta: '🔴', Media: '🟡', Baja: '🟢' }[task.priority] || '⚪';
-    const categoryIcon = { Trabajo: '💼', Formación: '📚', Equipo: '👥', Personal: '👤' }[task.category] || '📌';
+        const priorityIcon = { Alta: '🔴', Media: '🟡', Baja: '🟢' }[task.priority] || '⚪';
+        const categoryIcon = { Trabajo: '💼', Formación: '📚', Equipo: '👥', Personal: '👤' }[task.category] || '📌';
 
-    const editBtn = showDeleteBtn
-    ? `<button class="edit-btn mt-1 w-full text-xs bg-indigo-100 text-indigo-600 hover:bg-indigo-200 rounded-lg py-1 transition-colors" data-id="${task.id}">✎ Editar</button>`
-    : '';
-    const deleteBtn = showDeleteBtn
-        ? `<button class="delete-btn mt-1 w-full text-xs bg-red-100 text-red-600 hover:bg-red-200 rounded-lg py-1 transition-colors" data-id="${task.id}">× Eliminar</button>`
-        : '';
+        const editBtn = showDeleteBtn
+            ? `<button class="edit-btn mt-1 w-full text-xs bg-indigo-100 text-indigo-600 hover:bg-indigo-200 rounded-lg py-1 transition-colors" data-id="${task.id}">✎ Editar</button>`
+            : '';
+        const deleteBtn = showDeleteBtn
+            ? `<button class="delete-btn mt-1 w-full text-xs bg-red-100 text-red-600 hover:bg-red-200 rounded-lg py-1 transition-colors" data-id="${task.id}">× Eliminar</button>`
+            : '';
 
-    div.innerHTML = `
-        <div class="flex items-start justify-between">
-            <span class="font-semibold text-slate-900 dark:text-slate-50 text-sm">${task.title}</span>
-            <span class="text-lg">${priorityIcon}</span>
-        </div>
-        <div class="text-xs text-slate-500 dark:text-slate-400">${categoryIcon} ${task.category}</div>
-        <span class="${getBadgeClass(task.priority)} self-start">${task.priority}</span>
-        ${editBtn}
-${deleteBtn}
-    `;
-    return div;
-}
+        div.innerHTML = `
+            <div class="flex items-start justify-between">
+                <span class="font-semibold text-slate-900 dark:text-slate-50 text-sm">${task.title}</span>
+                <span class="text-lg">${priorityIcon}</span>
+            </div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">${categoryIcon} ${task.category}</div>
+            <span class="${getBadgeClass(task.priority)} self-start">${task.priority}</span>
+            ${editBtn}
+            ${deleteBtn}
+        `;
+        return div;
+    }
 
-// 3. Renderizar las tareas
+    // ── EDITAR TAREA ──────────────────────────────────────────────────────────
 
+    /**
+     * Rellena el formulario con los datos de la tarea para editarla.
+     * @param {string} taskId - id de la tarea a editar
+     */
     function startEditTask(taskId) {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
 
-    editingTaskId = taskId;
+        editingTaskId = taskId;
 
-    const titleInput    = document.getElementById('newTaskTitle');
-    const categoryInput = document.getElementById('newTaskCategory');
-    const priorityInput = document.getElementById('newTaskPriority');
-    const submitBtn     = taskForm?.querySelector('button[type="submit"]');
+        const titleInput    = document.getElementById('newTaskTitle');
+        const categoryInput = document.getElementById('newTaskCategory');
+        const priorityInput = document.getElementById('newTaskPriority');
+        const submitBtn     = taskForm?.querySelector('button[type="submit"]');
 
-    if (titleInput)    titleInput.value    = task.title;
-    if (categoryInput) categoryInput.value = task.category;
-    if (priorityInput) priorityInput.value = task.priority;
-    if (submitBtn)     submitBtn.textContent = '💾 Guardar cambios';
+        if (titleInput)    titleInput.value    = task.title;
+        if (categoryInput) categoryInput.value = task.category;
+        if (priorityInput) priorityInput.value = task.priority;
+        if (submitBtn)     submitBtn.textContent = '💾 Guardar cambios';
 
-    titleInput?.focus();
-    taskForm?.scrollIntoView({ behavior: 'smooth' });
+        titleInput?.focus();
+        taskForm?.scrollIntoView({ behavior: 'smooth' });
     }
 
+    // Resetea el formulario de vuelta al modo "añadir"
     function cancelEdit() {
-    editingTaskId = null;
-    const submitBtn = taskForm?.querySelector('button[type="submit"]');
-    if (submitBtn) submitBtn.textContent = 'Añadir tarea';
-    taskForm?.reset();
+        editingTaskId = null;
+        const submitBtn = taskForm?.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.textContent = 'Añadir tarea';
+        taskForm?.reset();
     }
 
+    // ── FILTRAR Y RENDERIZAR ──────────────────────────────────────────────────
+
+    /**
+     * Devuelve las tareas filtradas por búsqueda, categoría y prioridad, ordenadas.
+     * @returns {Array}
+     */
     function getFilteredTasks() {
-    const searchTerm       = searchInput?.value.toLowerCase() ?? '';
-    const selectedPriority = priorityFilter?.value ?? 'all';
+        const searchTerm       = searchInput?.value.toLowerCase() ?? '';
+        const selectedPriority = priorityFilter?.value ?? 'all';
 
-    return tasks
-        .filter(task => {
-            const matchesCategory = currentFilter === 'Todas' || task.category === currentFilter;
-            const matchesPriority = selectedPriority === 'all' || task.priority === selectedPriority;
-            const matchesSearch   = task.title.toLowerCase().includes(searchTerm);
-            return matchesCategory && matchesPriority && matchesSearch;
-        })
-        .sort((a, b) => ({ Alta: 3, Media: 2, Baja: 1 }[b.priority] - { Alta: 3, Media: 2, Baja: 1 }[a.priority]));
+        return tasks
+            .filter(task => {
+                const matchesCategory = currentFilter === 'Todas' || task.category === currentFilter;
+                const matchesPriority = selectedPriority === 'all' || task.priority === selectedPriority;
+                const matchesSearch   = task.title.toLowerCase().includes(searchTerm);
+                return matchesCategory && matchesPriority && matchesSearch;
+            })
+            .sort((a, b) => ({ Alta: 3, Media: 2, Baja: 1 }[b.priority] - { Alta: 3, Media: 2, Baja: 1 }[a.priority]));
     }
 
-   function renderTasks() {
+    // Limpia y vuelve a pintar la lista de tareas con los filtros activos
+    function renderTasks() {
         if (!taskList) return;
         taskList.innerHTML = '';
         getFilteredTasks().forEach(task => taskList.appendChild(createTaskElement(task)));
         updateNovedades();
     }
 
-    // Actualizar sección de Novedades (últimos 3 días)
+    // ── NOVEDADES ─────────────────────────────────────────────────────────────
 
+    // Actualiza el panel de novedades con tareas de los últimos 3 días
+    // (solo actúa si los elementos existen en el HTML)
     function updateNovedades() {
-        const recentTasksCountEl = document.getElementById('recentTasksCount');
-        const recentTasksListEl = document.getElementById('recentTasksList');
+        const recentTasksCountEl         = document.getElementById('recentTasksCount');
+        const recentTasksListEl          = document.getElementById('recentTasksList');
         const moreRecentTasksContainerEl = document.getElementById('moreRecentTasksContainer');
-        const moreRecentTasksListEl = document.getElementById('moreRecentTasksList');
+        const moreRecentTasksListEl      = document.getElementById('moreRecentTasksList');
 
         if (!recentTasksCountEl || !recentTasksListEl) return;
 
         const threeDaysAgo = Date.now() - (3 * 24 * 60 * 60 * 1000);
 
-        // Asumimos que task.id es el timestamp de creación
         const recentTasks = tasks.filter(task => {
             const taskTimestamp = parseInt(task.id);
             return !isNaN(taskTimestamp) && taskTimestamp >= threeDaysAgo;
-        }).sort((a, b) => parseInt(b.id) - parseInt(a.id)); // Más recientes primero
+        }).sort((a, b) => parseInt(b.id) - parseInt(a.id));
 
         recentTasksCountEl.textContent = recentTasks.length;
 
-        // Limpiar listas
         recentTasksListEl.innerHTML = '';
         if (moreRecentTasksListEl) moreRecentTasksListEl.innerHTML = '';
 
-        // Renderizar hasta 3 tareas
-        const top3 = recentTasks.slice(0, 3);
-        top3.forEach(task => {
+        recentTasks.slice(0, 3).forEach(task => {
             recentTasksListEl.appendChild(createTaskElement(task, false));
         });
 
-
-        // Renderizar el resto si(if) hay más de 3
-
         if (moreRecentTasksContainerEl) {
-        moreRecentTasksContainerEl.style.display = recentTasks.length > 3 ? 'block' : 'none';
-        recentTasks.slice(3).forEach(t => moreRecentTasksListEl?.appendChild(createTaskElement(t, false)));
+            moreRecentTasksContainerEl.style.display = recentTasks.length > 3 ? 'block' : 'none';
+            recentTasks.slice(3).forEach(t => moreRecentTasksListEl?.appendChild(createTaskElement(t, false)));
         }
-    } 
+    }
 
-    
-    // 4. Añadir Tarea
+    // ── AÑADIR / GUARDAR TAREA ────────────────────────────────────────────────
 
     if (taskForm) {
         taskForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
-            const titleInput = document.getElementById('newTaskTitle');
+            const titleInput    = document.getElementById('newTaskTitle');
             const categoryInput = document.getElementById('newTaskCategory');
             const priorityInput = document.getElementById('newTaskPriority');
             const title         = titleInput.value.trim();
-    
-        if (!title) return;
 
-        if (editingTaskId) {
-            tasks = tasks.map(t => t.id === editingTaskId
-                ? { ...t, title, category: categoryInput.value, priority: priorityInput.value }
-                : t
-            );
-            cancelEdit();
-        } else {
-            tasks.push({
-                id:       Date.now().toString(),
-                title,
-                category: categoryInput.value,
-                priority: priorityInput.value,
-            });
-        }
+            if (!title) return;
 
-        saveTasks();
-        renderTasks();
-        titleInput.value    = '';
-        categoryInput.value = 'Trabajo';
-        priorityInput.value = 'Alta';
+            if (editingTaskId) {
+                // Modo edición: actualiza la tarea existente
+                tasks = tasks.map(t => t.id === editingTaskId
+                    ? { ...t, title, category: categoryInput.value, priority: priorityInput.value }
+                    : t
+                );
+                cancelEdit();
+            } else {
+                // Modo añadir: crea tarea nueva con id = timestamp actual
+                tasks.push({
+                    id:       Date.now().toString(),
+                    title,
+                    category: categoryInput.value,
+                    priority: priorityInput.value,
+                });
+            }
+
+            saveTasks();
+            renderTasks();
+            titleInput.value    = '';
+            categoryInput.value = 'Trabajo';
+            priorityInput.value = 'Alta';
         });
     }
 
-    // 5. Eliminar Tarea
-    
-            taskList?.addEventListener('click', (e) => {
-                const deleteBtn = e.target.closest('.delete-btn');
-                const editBtn   = e.target.closest('.edit-btn');
+    // ── ELIMINAR / EDITAR TAREA (click en la lista) ───────────────────────────
 
-                if (deleteBtn) {
-                    tasks = tasks.filter(t => t.id !== deleteBtn.dataset.id);
-                    saveTasks();
-                    renderTasks();
-                }
+    taskList?.addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('.delete-btn');
+        const editBtn   = e.target.closest('.edit-btn');
 
-                if (editBtn) {
-                    startEditTask(editBtn.dataset.id);
-                }
-            });
-        
-    
-
-    // 6. Búsqueda por texto (Tiempo real)
-    if (searchInput) {
-        searchInput.addEventListener('input', () => {
+        if (deleteBtn) {
+            tasks = tasks.filter(t => t.id !== deleteBtn.dataset.id);
+            saveTasks();
             renderTasks();
-        });
+        }
+
+        if (editBtn) {
+            startEditTask(editBtn.dataset.id);
+        }
+    });
+
+    // ── BÚSQUEDA Y FILTROS ────────────────────────────────────────────────────
+
+    // Búsqueda en tiempo real al escribir, y también al pulsar Enter
+    if (searchInput) {
+        searchInput.addEventListener('input', () => renderTasks());
     }
     searchInput?.addEventListener('keydown', e => {
         if (e.key === 'Enter') renderTasks();
     });
 
+    // Filtro por prioridad desde el desplegable superior
     if (priorityFilter) {
-        priorityFilter.addEventListener('change', () => {
-            renderTasks();
-        });
+        priorityFilter.addEventListener('change', () => renderTasks());
     }
 
+    // Búsqueda en el calendario: localiza la tarea y salta al día de creación
     document.getElementById('calendarSearch')?.addEventListener('input', e => {
         const term = e.target.value.toLowerCase().trim();
         if (!term) return;
@@ -322,23 +350,22 @@ ${deleteBtn}
         }
     });
 
-    // 7. Filtro por categorías
+    // Filtro por categoría desde el panel derecho
     categoryFilters.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            // Actualizar botones activos
             categoryFilters.forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
-
             currentFilter = e.target.getAttribute('data-category');
             renderTasks();
         });
     });
 
-    
-    
+    // ── NOTAS ─────────────────────────────────────────────────────────────────
 
-    
-
+    /**
+     * Configura el área de notas con autoguardado (800ms) y guardado manual.
+     * Las notas persisten en localStorage entre sesiones.
+     */
     function setupNotes() {
         const notesEl  = document.getElementById('notes');
         const saveBtn  = document.getElementById('saveNotesBtn');
@@ -349,7 +376,7 @@ ${deleteBtn}
         // Cargar notas guardadas
         notesEl.value = localStorage.getItem('userNotes') || '';
 
-        // Auto-guardar al escribir
+        // Autoguardado con retardo de 800ms tras dejar de escribir
         let saveTimeout;
         notesEl.addEventListener('input', () => {
             clearTimeout(saveTimeout);
@@ -363,7 +390,7 @@ ${deleteBtn}
             }, 800);
         });
 
-        // Guardar manualmente
+        // Guardado manual con el botón
         saveBtn?.addEventListener('click', () => {
             localStorage.setItem('userNotes', notesEl.value);
             if (statusEl) {
@@ -373,67 +400,76 @@ ${deleteBtn}
         });
     }
 
+    // ── CALENDARIO ────────────────────────────────────────────────────────────
+
+    /**
+     * Dibuja el calendario mensual navegable.
+     * Marca con un punto los días que tienen tareas creadas.
+     * Al hacer clic en un día muestra sus tareas debajo.
+     * @param {Date} date - mes a mostrar (por defecto el mes actual)
+     */
     function renderCalendar(date = new Date()) {
-    const calendarEl = document.getElementById('calendar');
-    if (!calendarEl) return;
+        const calendarEl = document.getElementById('calendar');
+        if (!calendarEl) return;
 
-    const year  = date.getFullYear();
-    const month = date.getMonth();
+        const year  = date.getFullYear();
+        const month = date.getMonth();
 
-    const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-                        'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-    const dayNames   = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+        const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                            'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        const dayNames   = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 
-    const firstDay = new Date(year, month, 1);
-    const lastDay  = new Date(year, month + 1, 0);
-    const startDay = (firstDay.getDay() + 6) % 7;
-    const today    = new Date();
+        const firstDay = new Date(year, month, 1);
+        const lastDay  = new Date(year, month + 1, 0);
+        const startDay = (firstDay.getDay() + 6) % 7;
+        const today    = new Date();
 
-    let html = `
-        <div class="flex items-center justify-between mb-4">
-            <button id="prevMonth" class="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-sm font-medium transition-colors">← Anterior</button>
-            <h3 class="font-bold text-slate-800 dark:text-slate-100">${monthNames[month]} ${year}</h3>
-            <button id="nextMonth" class="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-sm font-medium transition-colors">Siguiente →</button>
-        </div>
-        <div class="grid grid-cols-7 gap-1 mb-2">
-            ${dayNames.map(d => `<div class="text-center text-xs font-semibold text-slate-500 py-1">${d}</div>`).join('')}
-        </div>
-        <div class="grid grid-cols-7 gap-1">
-    `;
+        let html = `
+            <div class="flex items-center justify-between mb-4">
+                <button id="prevMonth" class="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-sm font-medium transition-colors">← Anterior</button>
+                <h3 class="font-bold text-slate-800 dark:text-slate-100">${monthNames[month]} ${year}</h3>
+                <button id="nextMonth" class="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-sm font-medium transition-colors">Siguiente →</button>
+            </div>
+            <div class="grid grid-cols-7 gap-1 mb-2">
+                ${dayNames.map(d => `<div class="text-center text-xs font-semibold text-slate-500 py-1">${d}</div>`).join('')}
+            </div>
+            <div class="grid grid-cols-7 gap-1">
+        `;
 
-    for (let i = 0; i < startDay; i++) {
-        html += `<div class="h-9 rounded-lg"></div>`;
-    }
+        // Celdas vacías antes del primer día del mes
+        for (let i = 0; i < startDay; i++) {
+            html += `<div class="h-9 rounded-lg"></div>`;
+        }
 
-    // Días que tienen tareas este mes
-    const taskDays = new Set(tasks.map(t => {
-    const d = new Date(parseInt(t.id));
-    return (d.getMonth() === month && d.getFullYear() === year) ? d.getDate() : null;
-    }).filter(Boolean));
+        // Días del mes que tienen al menos una tarea creada
+        const taskDays = new Set(tasks.map(t => {
+            const d = new Date(parseInt(t.id));
+            return (d.getMonth() === month && d.getFullYear() === year) ? d.getDate() : null;
+        }).filter(Boolean));
 
-    for (let day = 1; day <= lastDay.getDate(); day++) {
-    const isToday  = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-    const hasTasks = taskDays.has(day);
-    const cls = isToday
-        ? 'bg-indigo-600 text-white font-bold'
-        : 'hover:bg-indigo-100 dark:hover:bg-indigo-900 text-slate-700 dark:text-slate-200';
-    const dot = hasTasks
-        ? `<span class="block w-1 h-1 rounded-full bg-indigo-400 mx-auto mt-0.5"></span>`
-        : '';
-    html += `<div class="h-9 flex flex-col items-center justify-center rounded-lg text-sm cursor-pointer transition-colors ${cls}" data-day="${day}">${day}${dot}</div>`;
-    }
+        for (let day = 1; day <= lastDay.getDate(); day++) {
+            const isToday  = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+            const hasTasks = taskDays.has(day);
+            const cls = isToday
+                ? 'bg-indigo-600 text-white font-bold'
+                : 'hover:bg-indigo-100 dark:hover:bg-indigo-900 text-slate-700 dark:text-slate-200';
+            const dot = hasTasks
+                ? `<span class="block w-1 h-1 rounded-full bg-indigo-400 mx-auto mt-0.5"></span>`
+                : '';
+            html += `<div class="h-9 flex flex-col items-center justify-center rounded-lg text-sm cursor-pointer transition-colors ${cls}" data-day="${day}">${day}${dot}</div>`;
+        }
 
-    html += `</div>`;
-    calendarEl.innerHTML = html;
+        html += `</div>`;
+        calendarEl.innerHTML = html;
 
-    document.getElementById('prevMonth')?.addEventListener('click', () => renderCalendar(new Date(year, month - 1, 1)));
-    document.getElementById('nextMonth')?.addEventListener('click', () => renderCalendar(new Date(year, month + 1, 1)));
-    
-    // Click en día — muestra tareas de ese día
-        
+        // Navegar al mes anterior o siguiente
+        document.getElementById('prevMonth')?.addEventListener('click', () => renderCalendar(new Date(year, month - 1, 1)));
+        document.getElementById('nextMonth')?.addEventListener('click', () => renderCalendar(new Date(year, month + 1, 1)));
+
+        // Click en un día — muestra las tareas creadas ese día
         calendarEl.querySelectorAll('[data-day]').forEach(dayEl => {
             dayEl.addEventListener('click', () => {
-                const day = parseInt(dayEl.dataset.day);
+                const day      = parseInt(dayEl.dataset.day);
                 const dayTasks = tasks.filter(t => {
                     const d = new Date(parseInt(t.id));
                     return d.getDate() === day && d.getMonth() === month && d.getFullYear() === year;
@@ -459,17 +495,19 @@ ${deleteBtn}
         });
     }
 
+    // ── INICIO ────────────────────────────────────────────────────────────────
     loadTasks();
     setupNotes();
     renderCalendar();
 });
 
-// Función global para cambiar entre secciones desde el sidebar
+// ── CAMBIAR SECCIÓN desde los links del sidebar ───────────────────────────────
 
 window.showSection = function (sectionId) {
     const sections = ['taskSection', 'calendarSection', 'notesSection'];
     sections.forEach(id => {
         const el = document.getElementById(id);
-        if (!el) return; el.style.display = (id === sectionId) ? 'block' : 'none';
+        if (!el) return;
+        el.style.display = (id === sectionId) ? 'block' : 'none';
     });
 };
