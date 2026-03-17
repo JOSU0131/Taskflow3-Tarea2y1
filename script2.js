@@ -96,6 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
         Media: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-100',
         Baja:  'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100',
     };
+    // Ciclo de prioridades al hacer clic en el circulito
+    const PRIORITY_CYCLE = { Alta: 'Media', Media: 'Baja', Baja: 'Alta' };
 
     /**
      * Devuelve las clases Tailwind del badge según la prioridad.
@@ -133,6 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
             : '';
 
         li.innerHTML = `
+            <button class="priority-dot dot-${task.priority} w-3 h-3 rounded-full shrink-0 cursor-pointer hover:scale-125 transition-transform" 
+            data-id="${task.id}" title="Cambiar prioridad"></button>
             <span class="task-title font-medium text-slate-900 dark:text-slate-50">${task.title}</span>
             <span class="task-category text-xs text-slate-500 dark:text-slate-300">${task.category}</span>
             <span class="${getBadgeClass(task.priority)}">${task.priority}</span>
@@ -160,7 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
         div.innerHTML = `
             <div class="flex items-start justify-between">
                 <span class="font-semibold text-slate-900 dark:text-slate-50 text-sm">${task.title}</span>
-                <span class="text-lg">${priorityIcon}</span>
+                <button class="priority-dot dot-${task.priority} w-4 h-4 rounded-full shrink-0 cursor-pointer hover:scale-125 transition-transform" 
+                    data-id="${task.id}" title="Cambiar prioridad (${task.priority})"></button>
             </div>
             <div class="text-xs text-slate-500 dark:text-slate-400">${categoryIcon} ${task.category}</div>
             <span class="${getBadgeClass(task.priority)} self-start">${task.priority}</span>
@@ -309,6 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
     taskList?.addEventListener('click', (e) => {
         const deleteBtn = e.target.closest('.delete-btn');
         const editBtn   = e.target.closest('.edit-btn');
+        const priorityBtn = e.target.closest('.priority-dot');
 
         if (deleteBtn) {
             tasks = tasks.filter(t => t.id !== deleteBtn.dataset.id);
@@ -318,6 +324,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (editBtn) {
             startEditTask(editBtn.dataset.id);
+        }
+        // Circulito — cambia la prioridad al siguiente nivel
+        if (priorityBtn) {
+            const taskId = priorityBtn.dataset.id;
+            tasks = tasks.map(t => t.id === taskId
+                ? { ...t, priority: PRIORITY_CYCLE[t.priority] || 'Media' }
+                : t
+            );
+            saveTasks();
+            renderTasks();
         }
     });
 
