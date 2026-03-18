@@ -1,4 +1,3 @@
-
 // ── MODO OSCURO ───────────────────────────────────────────────────────────────
 
 const toggleBtn = document.getElementById("darkModeToggle");
@@ -38,12 +37,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebar         = document.getElementById('sidebar');
     const closeMenu       = document.getElementById('closeMenu');
     const viewToggleBtn   = document.getElementById('viewToggleBtn');
+    const taskCountLabel  = document.getElementById('taskCountLabel');
+    const sidebarCount    = document.getElementById('sidebarTaskCount');
 
     // Variables de estado
-    let tasks = [];
-    let currentFilter = 'Todas';
-    let isCardView    = false;
-    let editingTaskId = null;
+    let tasks         = [];       // lista de tareas en memoria
+    let currentFilter = 'Todas'; // categoría activa en el panel derecho
+    let isCardView    = false;    // false = lista, true = tarjetas
+    let editingTaskId = null;     // id de la tarea en edición (null = modo añadir)
+    let dragSrcId     = null;     // id de la tarea que se está arrastrando
 
     // ── SIDEBAR ───────────────────────────────────────────────────────────────
 
@@ -88,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('tasks', JSON.stringify(tasks));
     }
 
-    // ── BADGES DE PRIORIDAD ───────────────────────────────────────────────────
+    // ── BADGES Y PRIORIDADES ──────────────────────────────────────────────────
 
     // Clases de color para cada nivel de prioridad
     const BADGE_CLASSES = {
@@ -96,7 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
         Media: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-100',
         Baja:  'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100',
     };
-    // Ciclo de prioridades al hacer clic en el circulito
+
+    // Ciclo de prioridades al hacer clic en el circulito: Alta → Media → Baja → Alta
     const PRIORITY_CYCLE = { Alta: 'Media', Media: 'Baja', Baja: 'Alta' };
 
     /**
@@ -121,11 +124,15 @@ document.addEventListener('DOMContentLoaded', () => {
             : createTaskListItem(task, showDeleteBtn);
     }
 
-    // Crea una fila de lista para una tarea
+    /**
+     * Crea una fila de lista para una tarea.
+     * Incluye circulito de prioridad clickable y soporte drag & drop.
+     */
     function createTaskListItem(task, showDeleteBtn) {
         const li = document.createElement('li');
-        li.className = 'task-item flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm';
+        li.className = 'task-item tarea-entra flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm';
         li.dataset.id = task.id;
+        li.draggable  = true; // necesario para drag & drop
 
         const editBtn = showDeleteBtn
             ? `<button class="edit-btn inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-400 text-white text-xs font-bold hover:bg-indigo-600 transition-colors" data-id="${task.id}">✎</button>`
@@ -135,23 +142,26 @@ document.addEventListener('DOMContentLoaded', () => {
             : '';
 
         li.innerHTML = `
-            <button class="priority-dot dot-${task.priority} w-3 h-3 rounded-full shrink-0 cursor-pointer hover:scale-125 transition-transform" 
-            data-id="${task.id}" title="Cambiar prioridad"></button>
-            <span class="task-title font-medium text-slate-900 dark:text-slate-50">${task.title}</span>
-            <span class="task-category text-xs text-slate-500 dark:text-slate-300">${task.category}</span>
-            <span class="${getBadgeClass(task.priority)}">${task.priority}</span>
-            <div class="flex gap-1">${editBtn}${deleteBtn}</div>
+            <button class="priority-dot dot-${task.priority} w-3 h-3 rounded-full shrink-0
+                           cursor-pointer hover:scale-125 transition-transform"
+                    data-id="${task.id}" title="Cambiar prioridad (${task.priority})"></button>
+            <span class="task-title font-medium text-slate-900 dark:text-slate-50 flex-1 truncate">${task.title}</span>
+            <span class="task-category text-xs text-slate-500 dark:text-slate-300 hidden sm:inline">${task.category}</span>
+            <span class="${getBadgeClass(task.priority)} shrink-0">${task.priority}</span>
+            <div class="flex gap-1 shrink-0">${editBtn}${deleteBtn}</div>
         `;
         return li;
     }
 
-    // Crea una tarjeta visual para una tarea
+    /**
+     * Crea una tarjeta visual para una tarea.
+     * Incluye circulito de prioridad clickable en la esquina superior.
+     */
     function createTaskCard(task, showDeleteBtn) {
         const div = document.createElement('div');
-        div.className = 'task-card bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex flex-col gap-2';
+        div.className = 'task-card tarea-entra bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm flex flex-col gap-2';
         div.dataset.id = task.id;
 
-        const priorityIcon = { Alta: '🔴', Media: '🟡', Baja: '🟢' }[task.priority] || '⚪';
         const categoryIcon = { Trabajo: '💼', Formación: '📚', Equipo: '👥', Personal: '👤' }[task.category] || '📌';
 
         const editBtn = showDeleteBtn
@@ -162,10 +172,11 @@ document.addEventListener('DOMContentLoaded', () => {
             : '';
 
         div.innerHTML = `
-            <div class="flex items-start justify-between">
+            <div class="flex items-start justify-between gap-2">
                 <span class="font-semibold text-slate-900 dark:text-slate-50 text-sm">${task.title}</span>
-                <button class="priority-dot dot-${task.priority} w-4 h-4 rounded-full shrink-0 cursor-pointer hover:scale-125 transition-transform" 
-                    data-id="${task.id}" title="Cambiar prioridad (${task.priority})"></button>
+                <button class="priority-dot dot-${task.priority} w-4 h-4 rounded-full shrink-0
+                               cursor-pointer hover:scale-125 transition-transform mt-0.5"
+                        data-id="${task.id}" title="Cambiar prioridad (${task.priority})"></button>
             </div>
             <div class="text-xs text-slate-500 dark:text-slate-400">${categoryIcon} ${task.category}</div>
             <span class="${getBadgeClass(task.priority)} self-start">${task.priority}</span>
@@ -173,6 +184,53 @@ document.addEventListener('DOMContentLoaded', () => {
             ${deleteBtn}
         `;
         return div;
+    }
+
+    // ── DRAG & DROP ───────────────────────────────────────────────────────────
+
+    /**
+     * Activa el arrastre en todos los elementos de la lista.
+     * Permite reordenar las tareas arrastrándolas.
+     * Solo funciona en vista lista (no tarjetas).
+     */
+    function setupDragAndDrop() {
+        const items = taskList.querySelectorAll('[draggable="true"]');
+
+        items.forEach(item => {
+            // Al empezar a arrastrar — guardar el id origen y bajar opacidad
+            item.addEventListener('dragstart', () => {
+                dragSrcId = item.dataset.id;
+                setTimeout(() => { item.style.opacity = '0.4'; }, 0);
+            });
+
+            // Al soltar — restaurar opacidad y quitar bordes
+            item.addEventListener('dragend', () => {
+                item.style.opacity = '1';
+                document.querySelectorAll('.drag-sobre').forEach(el => el.classList.remove('drag-sobre'));
+            });
+
+            // Al pasar por encima — mostrar borde punteado
+            item.addEventListener('dragover', e => {
+                e.preventDefault();
+                document.querySelectorAll('.drag-sobre').forEach(el => el.classList.remove('drag-sobre'));
+                item.classList.add('drag-sobre');
+            });
+
+            // Al soltar encima de otro elemento — reordenar en el array
+            item.addEventListener('drop', e => {
+                e.preventDefault();
+                if (dragSrcId && dragSrcId !== item.dataset.id) {
+                    const srcIdx  = tasks.findIndex(t => t.id === dragSrcId);
+                    const destIdx = tasks.findIndex(t => t.id === item.dataset.id);
+                    if (srcIdx !== -1 && destIdx !== -1) {
+                        const [moved] = tasks.splice(srcIdx, 1);
+                        tasks.splice(destIdx, 0, moved);
+                        saveTasks();
+                        renderTasks();
+                    }
+                }
+            });
+        });
     }
 
     // ── EDITAR TAREA ──────────────────────────────────────────────────────────
@@ -205,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function cancelEdit() {
         editingTaskId = null;
         const submitBtn = taskForm?.querySelector('button[type="submit"]');
-        if (submitBtn) submitBtn.textContent = 'Añadir tarea';
+        if (submitBtn) submitBtn.textContent = '+ Añadir';
         taskForm?.reset();
     }
 
@@ -229,11 +287,24 @@ document.addEventListener('DOMContentLoaded', () => {
             .sort((a, b) => ({ Alta: 3, Media: 2, Baja: 1 }[b.priority] - { Alta: 3, Media: 2, Baja: 1 }[a.priority]));
     }
 
-    // Limpia y vuelve a pintar la lista de tareas con los filtros activos
+    /**
+     * Limpia y vuelve a pintar la lista de tareas con los filtros activos.
+     * También actualiza los contadores del sidebar y la barra superior.
+     */
     function renderTasks() {
         if (!taskList) return;
         taskList.innerHTML = '';
-        getFilteredTasks().forEach(task => taskList.appendChild(createTaskElement(task)));
+        const filtered = getFilteredTasks();
+        filtered.forEach(task => taskList.appendChild(createTaskElement(task)));
+
+        // Actualizar contadores
+        const total = filtered.length;
+        if (taskCountLabel) taskCountLabel.textContent = `${total} tarea${total !== 1 ? 's' : ''}`;
+        if (sidebarCount)   sidebarCount.textContent   = `${tasks.length} tarea${tasks.length !== 1 ? 's' : ''} activa${tasks.length !== 1 ? 's' : ''}`;
+
+        // Activar drag & drop solo en vista lista
+        if (!isCardView) setupDragAndDrop();
+
         updateNovedades();
     }
 
@@ -309,23 +380,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── ELIMINAR / EDITAR TAREA (click en la lista) ───────────────────────────
+    // ── ELIMINAR / EDITAR / CAMBIAR PRIORIDAD (click en la lista) ─────────────
 
     taskList?.addEventListener('click', (e) => {
-        const deleteBtn = e.target.closest('.delete-btn');
-        const editBtn   = e.target.closest('.edit-btn');
-        const priorityBtn = e.target.closest('.priority-dot');
+        const deleteBtn   = e.target.closest('.delete-btn');
+        const editBtn     = e.target.closest('.edit-btn');
+        const priorityBtn = e.target.closest('.priority-dot'); // circulito de prioridad
 
         if (deleteBtn) {
-            tasks = tasks.filter(t => t.id !== deleteBtn.dataset.id);
-            saveTasks();
-            renderTasks();
+            // Animar la salida antes de eliminar del array
+            const item = taskList.querySelector(`[data-id="${deleteBtn.dataset.id}"]`);
+            if (item) {
+                item.classList.add('tarea-sale');
+                item.addEventListener('animationend', () => {
+                    tasks = tasks.filter(t => t.id !== deleteBtn.dataset.id);
+                    saveTasks();
+                    renderTasks();
+                }, { once: true });
+            } else {
+                tasks = tasks.filter(t => t.id !== deleteBtn.dataset.id);
+                saveTasks();
+                renderTasks();
+            }
         }
 
         if (editBtn) {
             startEditTask(editBtn.dataset.id);
         }
-        // Circulito — cambia la prioridad al siguiente nivel
+
+        // Circulito — cambia la prioridad al siguiente nivel del ciclo
         if (priorityBtn) {
             const taskId = priorityBtn.dataset.id;
             tasks = tasks.map(t => t.id === taskId
