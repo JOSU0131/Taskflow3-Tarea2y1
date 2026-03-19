@@ -85,6 +85,28 @@ Prompt usado con Claude:
 
 ---
 
+## Dia 13. Miércoles. Mejoras visuales finales y funcionalidades JS pendientes
+
+### Cambios en `index.html`
+
+- Header con gradiente, sticky y borde inferior para separarlo del contenido
+- Sidebar rediseñado con gradiente, iconos y contador de tareas al pie
+- Footer oscuro completamente separado del body
+- Panel derecho con leyenda de prioridades y texto explicativo de los circulitos
+- Bloque `<style>` añadido con colores de circulitos, animaciones y estilos de drag & drop
+- Comentarios en español en todo el HTML
+
+### Cambios en `script2.js`
+
+- `PRIORITY_CYCLE` — objeto que define el ciclo Alta → Media → Baja → Alta al hacer clic en el circulito
+- `setupDragAndDrop()` — función que activa el arrastre para reordenar tareas en vista lista
+- `dragSrcId` — variable de estado que guarda el id de la tarea que se está arrastrando
+- Animación `tarea-sale` al eliminar — espera a que termine antes de borrar del array
+- Animación `tarea-entra` al crear — clase aplicada directamente al crear el elemento
+- Contadores actualizados en el sidebar y en la barra de prioridad superior
+
+---
+
 ## Stack técnico
 
 - HTML5 + Tailwind CSS (CDN)
