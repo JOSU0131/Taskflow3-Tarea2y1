@@ -22,12 +22,12 @@ function createTask(req, res) {
   res.status(201).json(nueva);
 }
 
-function deleteTask(req, res) {
-  const { id } = req.params;
-
-  service.eliminarTarea(id);
+function deleteTask(req, res, next) {
+try {
+  service.eliminarTarea(req.params.id);
 
   res.status(204).send();
+    } catch (error) { next(error) };  
 }
 
 module.exports = {
