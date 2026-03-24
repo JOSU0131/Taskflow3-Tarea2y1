@@ -1,8 +1,12 @@
-// Cargamos la configuración primero — valida que .env existe
-const { 3000 } =  require('./config/env');
+// ── CONFIGURACIÓN ─────────────────────────────────────────────────────────────
+// Cargamos el puerto desde .env — si no existe lanza un error y para el servidor
+const { PORT } = require('./config/env');
 
 const express = require('express');
 const cors    = require('cors');
+
+// Importamos las rutas de tareas
+const taskRoutes = require('./routes/task.routes');
 
 const app = express();
 
@@ -11,7 +15,7 @@ const app = express();
 // Permite recibir JSON en el body de las peticiones
 app.use(express.json());
 
-// Permite peticiones desde el frontend (otro origen)
+// Permite peticiones desde el frontend (otro origen/dominio)
 app.use(cors());
 
 // Middleware de auditoría — registra cada petición en consola
@@ -24,32 +28,31 @@ app.use((req, res, next) => {
     next(); // sin esto la petición se queda colgada para siempre
 });
 
-// ── RUTA DE PRUEBA ────────────────────────────────────────────────────────────
+// ── RUTAS ─────────────────────────────────────────────────────────────────────
+// Ruta de prueba — comprueba que el servidor está vivo
 app.get('/', (req, res) => {
     res.json({ mensaje: 'Servidor Taskflow funcionando 🚀' });
 });
 
-// ── ARRANCAR SERVIDOR ─────────────────────────────────────────────────────────
-app.listen(3000, () => {
-    console.log(`Servidor corriendo en http://localhost:3000`);
+// Rutas de tareas — montadas bajo /api/v1/tasks
+app.use('/api/v1/tasks', taskRoutes);
+
+// ── MANEJO GLOBAL DE ERRORES ──────────────────────────────────────────────────
+// Este middleware de 4 parámetros captura todos los errores del servidor
+// Debe estar SIEMPRE al final, después de todas las rutas
+app.use((err, req, res, next) => {
+    // Si el servicio lanzó NOT_FOUND devolvemos 404
+    if (err.message === 'NOT_FOUND') {
+        return res.status(404).json({ error: 'Recurso no encontrado' });
+    }
+
+    // Para cualquier otro error registramos en consola y devolvemos 500
+    // Nunca enviamos detalles técnicos al cliente por seguridad
+    console.error(err);
+    res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-
-// "Middleware", maneja el registro global de errores y 
-// Funciona en tiempo de ejecución (runtime)
-// Captura errores reales
-// Evita que el servidor caiga
-// Devuelve respuestas HTTP correctas
-
-app.use((err, req, res, next) => {
-  if (err.message === "NOT_FOUND") {
-    return res.status(404).json({ error: "Recurso no encontrado" });
-  }
-// el error sube hasta este middleware
-
-  console.error(err);
-
-  res.status(500).json({
-    error: "Error interno del servidor"
-  });
+// ── ARRANCAR SERVIDOR ─────────────────────────────────────────────────────────
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
