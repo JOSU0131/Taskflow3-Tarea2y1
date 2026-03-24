@@ -10,7 +10,7 @@ const taskRoutes = require('./routes/task.routes');
 
 const app = express();
 
-// ── MIDDLEWARES GLOBALES ──────────────────────────────────────────────────────
+// ── MIDDLEWARES GLOBALES de parseo  ─────────────────────────────────────────────
 
 // Permite recibir JSON en el body de las peticiones
 app.use(express.json());
