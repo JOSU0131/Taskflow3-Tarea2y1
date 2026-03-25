@@ -1,3 +1,6 @@
+// IMPORTANTE Conectar frontend con API
+import { fetchTasks, createTask, deleteTask } from './api.js';
+
 // ── MODO OSCURO ───────────────────────────────────────────────────────────────
 
 const toggleBtn = document.getElementById("darkModeToggle");
@@ -26,6 +29,17 @@ if (toggleBtn) {
 // ── APP PRINCIPAL ─────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
+    
+    async function loadTasks() {
+        try {
+            const data = await fetchTasks(); // Viene de api.js
+            tasks = data; // Guardamos lo que diga el backend en nuestra variable local
+            renderTasks(); // Dibujamos la interfaz
+        } catch (error) {
+            console.error("Error cargando tareas:", error);
+        }
+    }
+
 
     // ── REFERENCIAS A ELEMENTOS DEL HTML ──────────────────────────────────────
     const taskForm        = document.getElementById('taskForm');
@@ -75,20 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ── LOCALSTORAGE ──────────────────────────────────────────────────────────
+    
 
-    // Carga las tareas guardadas y las muestra
-    function loadTasks() {
-        const stored = localStorage.getItem('tasks');
-        if (stored) {
-            tasks = JSON.parse(stored);
-            renderTasks();
-        }
-    }
 
-    // Guarda el array de tareas actual en localStorage
-    function saveTasks() {
-        localStorage.setItem('tasks', JSON.stringify(tasks));
-    }
+    // eliminado pasamos a backend
 
     // ── BADGES Y PRIORIDADES ──────────────────────────────────────────────────
 
@@ -225,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (srcIdx !== -1 && destIdx !== -1) {
                         const [moved] = tasks.splice(srcIdx, 1);
                         tasks.splice(destIdx, 0, moved);
-                        saveTasks();
+            
                         renderTasks();
                     }
                 }
@@ -345,7 +349,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── AÑADIR / GUARDAR TAREA ────────────────────────────────────────────────
 
     if (taskForm) {
-        taskForm.addEventListener('submit', (e) => {
+        taskForm.addEventListener('submit', async (e) => {
+
+
             e.preventDefault();
 
             const titleInput    = document.getElementById('newTaskTitle');
@@ -354,6 +360,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const title         = titleInput.value.trim();
 
             if (!title) return;
+
+
+
 
             if (editingTaskId) {
                 // Modo edición: actualiza la tarea existente
@@ -372,11 +381,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            saveTasks();
-            renderTasks();
-            titleInput.value    = '';
-            categoryInput.value = 'Trabajo';
-            priorityInput.value = 'Alta';
+            
+            await createTask({
+                title: title,
+                priority:  priorityInput.value === 'Alta' ? 3 :
+                            priorityInput.value === 'Media' ? 2 : 1
+                ,category: categoryInput.value
+            });
         });
     }
 
@@ -394,12 +405,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.classList.add('tarea-sale');
                 item.addEventListener('animationend', () => {
                     tasks = tasks.filter(t => t.id !== deleteBtn.dataset.id);
-                    saveTasks();
+                    
                     renderTasks();
                 }, { once: true });
             } else {
                 tasks = tasks.filter(t => t.id !== deleteBtn.dataset.id);
-                saveTasks();
+                
                 renderTasks();
             }
         }
@@ -415,7 +426,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? { ...t, priority: PRIORITY_CYCLE[t.priority] || 'Media' }
                 : t
             );
-            saveTasks();
+            
+        
             renderTasks();
         }
     });
@@ -472,31 +484,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!notesEl) return;
 
-        // Cargar notas guardadas
-        notesEl.value = localStorage.getItem('userNotes') || '';
-
-        // Autoguardado con retardo de 800ms tras dejar de escribir
-        let saveTimeout;
-        notesEl.addEventListener('input', () => {
-            clearTimeout(saveTimeout);
-            if (statusEl) statusEl.textContent = 'Editando...';
-            saveTimeout = setTimeout(() => {
-                localStorage.setItem('userNotes', notesEl.value);
-                if (statusEl) {
-                    statusEl.textContent = '✅ Guardado automáticamente';
-                    setTimeout(() => { statusEl.textContent = ''; }, 2000);
-                }
-            }, 800);
-        });
+        // Cargar notas guardadas. Eliminadas pasamos a backend
 
         // Guardado manual con el botón
-        saveBtn?.addEventListener('click', () => {
-            localStorage.setItem('userNotes', notesEl.value);
-            if (statusEl) {
-                statusEl.textContent = '✅ Notas guardadas';
-                setTimeout(() => { statusEl.textContent = ''; }, 2000);
-            }
-        });
+        
     }
 
     // ── CALENDARIO ────────────────────────────────────────────────────────────
