@@ -15,7 +15,8 @@ Respuesta: No hay errores en la consola del navegador; el mensaje de Tailwind es
 Respuesta: No muestra errores rojos. En la pestaña "Network" (Red) se puede ver la petición POST con estado 201 Created.
 
 ¿Qué dice la consola del backend?
-Respuesta: Dice exactamente POST /api/v1/tasks - 201. Esto confirma que el servidor recibió los datos y los procesó correctamente.
+Respuesta: Dice exactamente POST /api/v1/tasks - 201. 
+Esto confirma que el servidor recibió los datos y los procesó correctamente.
 
 ### La Prueba de Fuego (Persistencia)
 Para poder decir con total seguridad que "Los datos persisten, el GET funciona", haz este último test:
@@ -30,9 +31,42 @@ Si la tarea que acabas de crear sigue ahí, es porque al cargar la página, tu c
 ### Repasa esto antes de entregar:
 
 POST funciona: Ya lo viste con el 201.
-
 GET funciona: Se confirma si al entrar/recargar ves las tareas.
 
 No hay LocalStorage: Asegúrate de que en script2.js las funciones de guardar en localStorage estén borradas o comentadas, para que todo dependa de la API.
 
-DELETE
+### Pruebas de Eliminar tareas / DELETE
+
+¿Qué pasa cuando eliminas una tarea?
+
+Probé a hacer Delete, en mi web aparece como "eliminar" o "X" en la tarea, y en la terminal del backend salia el mensaje "[POST] /api/v1/tasks - 201 (0ms)", lo que significabas que la orden de "borrar" no está llegando al servidor. Y además persistian las tareas.
+
+tuve que buscar en script2.js y reemplazar el codigo por:
+
+     if (deleteBtn) {
+    const taskId = deleteBtn.dataset.id;
+    const item = taskList.querySelector(`[data-id="${taskId}"]`);
+    
+    if (item) {
+        item.classList.add('tarea-sale');
+        item.addEventListener('animationend', async () => {
+            try {
+                // 2. Llamamos a la API para borrar en el servidor
+                await deleteTask(taskId); 
+                // 3. Recargamos la lista desde el servidor para confirmar
+                await loadTasks(); 
+            } catch (error) {
+                console.error("Error al borrar:", error);
+                alert("No se pudo borrar la tarea del servidor");
+            }
+        }, { once: true });
+        }
+    }
+
+Despues de reemplazar el codigo, se corrigio los fallos, el POST y el de persistencia
+En el terminal backend, funcionaba correctamente y aparecia el mensaje:
+  DELETE /api/v1/tasks/ID - 204 (o 200).
+
+
+
+## Documentación de colección de errores intencionados

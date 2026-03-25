@@ -27,7 +27,7 @@ if (toggleBtn) {
 }
 
 // ── APP PRINCIPAL ─────────────────────────────────────────────────────────────
-
+//          DOMContent
 document.addEventListener('DOMContentLoaded', () => {
     
     async function loadTasks() {
@@ -399,19 +399,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const priorityBtn = e.target.closest('.priority-dot'); // circulito de prioridad
 
         if (deleteBtn) {
-            // Animar la salida antes de eliminar del array
-            const item = taskList.querySelector(`[data-id="${deleteBtn.dataset.id}"]`);
+            const taskId = deleteBtn.dataset.id;
+            const item = taskList.querySelector(`[data-id="${taskId}"]`);
+            
+            // 1. Animamos la salida visual
             if (item) {
                 item.classList.add('tarea-sale');
-                item.addEventListener('animationend', () => {
-                    tasks = tasks.filter(t => t.id !== deleteBtn.dataset.id);
-                    
-                    renderTasks();
+                item.addEventListener('animationend', async () => {
+                    try {
+                        // 2. Llamamos a la API para borrar en el servidor
+                        await deleteTask(taskId); 
+                        // 3. Recargamos la lista desde el servidor para confirmar
+                        await loadTasks(); 
+                    } catch (error) {
+                        console.error("Error al borrar:", error);
+                        alert("No se pudo borrar la tarea del servidor");
+                    }
                 }, { once: true });
-            } else {
-                tasks = tasks.filter(t => t.id !== deleteBtn.dataset.id);
-                
-                renderTasks();
             }
         }
 
