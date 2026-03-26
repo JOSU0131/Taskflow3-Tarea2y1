@@ -1,5 +1,35 @@
 # FASE C Robustez, manejo de excepciones y pruebas de red
 
+###  Pruebas y erroers (Frontend - Backend)
+Durante la conexión de la interfaz con la API, se identificaron y resolvieron los siguientes obstáculos técnicos:
+
+    Error de CORS y Protocolo: Inicialmente, al abrir el archivo index.html directamente desde el explorador, el navegador bloqueaba las peticiones por políticas de seguridad (CORS).
+
+        Solución: Se utilizó la extensión Live Server de VS Code para servir la aplicación bajo un protocolo http:// estable.
+
+    Conflictos de Módulos (Import/Export): Aparecieron errores de Uncaught SyntaxError: Cannot use import statement outside a module.
+
+        Solución: Se añadió el atributo type="module" en las etiquetas <script> del archivo index.html.
+
+    Duplicidad de Funciones: En el archivo api.js existían declaraciones repetidas de funciones como createTask y deleteTask, lo que causaba que el script dejara de funcionar.
+
+        Solución: Se refactorizó api.js eliminando los imports innecesarios y dejando únicamente las funciones exportables de la API.
+
+    Sincronización de Datos: Se detectó que el frontend enviaba campos en español (titulo, prioridad) mientras el backend esperaba inglés (title, priority).
+
+        Solución: Se ajustaron los objetos JSON en script2.js para asegurar la compatibilidad total con el servidor.
+
+### Pruebas de Integración y Red
+Se realizaron pruebas utilizando Thunder Client (o Postman) para forzar errores intencionados y validar la respuesta del servidor:
+
+POST sin título: El servidor responde con un error de validación, evitando que se guarden tareas vacías en la base de datos.
+
+DELETE de tarea inexistente: Al intentar borrar una tarea que no existe, el middleware captura el fallo y devuelve un 404 Not Found, confirmando que el mapeo semántico funciona.
+
+GET y Persistencia: Se confirmó mediante la consola de VS Code que las peticiones devuelven el código 201 al crear y 200 al listar. Al recargar la página, las tareas se mantienen, demostrando que la persistencia en el backend es exitosa.
+
+
+
 ### Tus respuestas para la Tarea
 
 ¿Qué pasa cuando creas una tarea?
@@ -70,3 +100,13 @@ En el terminal backend, funcionaba correctamente y aparecia el mensaje:
 
 
 ## Documentación de colección de errores intencionados
+
+**Usado en este task-flow**
+        Thunder Client para probar los endpoints durante el desarrollo:
+        ```
+        GET    /api/v1/tasks        → 200 ✅
+        POST   /api/v1/tasks        → 201 ✅
+        POST   /api/v1/tasks (vacío)→ 400 ✅
+        DELETE /api/v1/tasks/:id    → 204 ✅
+        DELETE /api/v1/tasks/999    → 404 ✅
+        ```
