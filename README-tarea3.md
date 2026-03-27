@@ -27,27 +27,7 @@ Vas a construir una API así:
     controllers → validan datos HTTP
     services → lógica pura (sin Express)
 
-### FASE C — Manejo de errores (MUY importante)
-
-#### Pruebas y erroers (Frontend - Backend)
-
-    Durante la conexión de la interfaz con la API, se identificaron y resolvieron los siguientes obstáculos técnicos:
-
-    Error de CORS y Protocolo: Inicialmente, al abrir el archivo index.html directamente desde el explorador, el navegador bloqueaba las peticiones por políticas de seguridad (CORS).
-
-        Solución: Se utilizó la extensión Live Server de VS Code para servir la aplicación bajo un protocolo http:// estable.
-
-    Conflictos de Módulos (Import/Export): Aparecieron errores de Uncaught SyntaxError: Cannot use import statement outside a module.
-
-        Solución: Se añadió el atributo type="module" en las etiquetas <script> del archivo index.html.
-
-    Duplicidad de Funciones: En el archivo api.js existían declaraciones repetidas de funciones como createTask y deleteTask, lo que causaba que el script dejara de funcionar.
-
-        Solución: Se refactorizó api.js eliminando los imports innecesarios y dejando únicamente las funciones exportables de la API.
-
-    Sincronización de Datos: Se detectó que el frontend enviaba campos en español (titulo, prioridad) mientras el backend esperaba inglés (title, priority).
-
-        Solución: Se ajustaron los objetos JSON en script2.js para asegurar la compatibilidad total con el servidor.
+### FASE C -  Documentación de la API y Manejo de errores
 
 #### Pruebas de Integración y Red
 Se realizaron pruebas utilizando Thunder Client para forzar errores intencionados y validar la respuesta del servidor:
@@ -139,21 +119,6 @@ Pruebas de Integración en Thunder Client
     - Borrado Exitoso (DELETE 204)
     Se realizó la eliminación de una tarea válida previamente creada  (ID "1774625429648", título "ORCOS"). Creada con petición POST url: http://localhost:3000/api/v1/tasks/
 
-        Body JSON
-            {
-            "title": "ORCOS"
-            }
-
-            Respuesta: Status: 201 Created
-                {
-                "id": "1774626427865",
-                "title": "ORCOS",
-                "completed": false
-                }
-
-        Respuesta en terminal de server: [POST] /api/v1/tasks/ - 201 (1ms)
-        El servidor procesó la entrada, asignó un ID único de forma automática y respondió con el código "201 Created", confirmando la persistencia del recurso en la memoria
-
     Para su eliminacion exitosa, se visualizó su id mediante un GET, URL: http://localhost:3000/api/v1/tasks + SEND. Y la eliminación se realizo mediante un DELETE, URL: http://localhost:3000/api/v1/tasks/1774625429648 + SEND. 
 
     El servidor procesó la solicitud correctamente y respondió con el código "204 No Content", lo que indica que la acción se completó con éxito y no hay contenido adicional que devolver. 
@@ -187,10 +152,10 @@ Se ha elegido una estructura clara que separa las responsabilidades del código 
 
         Middleware de Manejo de Errores (Global): Implementado con 4 parámetros (err, req, res, next). Captura cualquier excepción en el flujo de ejecución, loguea el error en el servidor y devuelve una respuesta HTTP controlada (500) al cliente, evitando fugas de información técnica sensible.
 
-    - Ejemplos Prácticos de Interacción con la API REST
-        VER Readme FASE C
+   
+        
 
-
+### FASE BONUS. Configuración de Vercel
 
 
 ## Registro de Evolución y Soluciones (Bitácora de Desarrollo)
@@ -217,3 +182,23 @@ Solución: Estandarización de los objetos de datos en el frontend para coincidi
 Logro: Se verificó el flujo POST → 201 en la terminal de VS Code.
 
 Logro: Se conectó la función deleteTask para realizar peticiones DELETE, confirmando que los cambios persisten tras recargar la página (F5).
+
+5. Pruebas y erroers (Frontend - Backend)
+
+Durante la conexión de la interfaz con la API, se identificaron y resolvieron los siguientes obstáculos técnicos:
+
+Error de CORS y Protocolo: Inicialmente, al abrir el archivo index.html directamente desde el explorador, el navegador bloqueaba las peticiones por políticas de seguridad (CORS).
+
+        Solución: Se utilizó la extensión Live Server de VS Code para servir la aplicación bajo un protocolo http:// estable.
+
+Conflictos de Módulos (Import/Export): Aparecieron errores de Uncaught SyntaxError: Cannot use import statement outside a module.
+
+        Solución: Se añadió el atributo type="module" en las etiquetas <script> del archivo index.html.
+
+Duplicidad de Funciones: En el archivo api.js existían declaraciones repetidas de funciones como createTask y deleteTask, lo que causaba que el script dejara de funcionar.
+
+        Solución: Se refactorizó api.js eliminando los imports innecesarios y dejando únicamente las funciones exportables de la API.
+
+Sincronización de Datos: Se detectó que el frontend enviaba campos en español (titulo, prioridad) mientras el backend esperaba inglés (title, priority).
+
+        Solución: Se ajustaron los objetos JSON en script2.js para asegurar la compatibilidad total con el servidor.
