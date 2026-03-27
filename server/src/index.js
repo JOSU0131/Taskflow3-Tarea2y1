@@ -50,9 +50,11 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-module.exports = app;
+
 
 // 6. ARRANQUE SERVIDOR ─────────────────────────────────────────────────────────
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
+
+module.exports = app;
