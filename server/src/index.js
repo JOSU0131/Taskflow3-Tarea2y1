@@ -1,22 +1,18 @@
 // ── CONFIGURACIÓN ─────────────────────────────────────────────────────────────
 // Cargamos el puerto desde .env — si no existe lanza un error y para el servidor
+// 1. IMPORTACIONES ───────────────────────────────────────────────────────────────
 const { PORT } = require('./config/env');
-
 const express = require('express');
 const cors    = require('cors');
-
-// Importamos las rutas de tareas
 const taskRoutes = require('./routes/task.routes');
 
+// 2. INICIALIZACIÓN
 const app = express();
 
-// ── MIDDLEWARES GLOBALES de parseo  ─────────────────────────────────────────────
+// 3. MIDDLEWARES GLOBALES de parseo  ─────────────────────────────────────────────
 
-// Permite recibir JSON en el body de las peticiones
-app.use(express.json());
-
-// Permite peticiones desde el frontend (otro origen/dominio)
-app.use(cors());
+app.use(cors()); // <--- Permite que tu web hable con el server
+app.use(express.json()); // <--- Permite leer los JSON que envías
 
 // Middleware de auditoría — registra cada petición en consola
 app.use((req, res, next) => {
@@ -28,16 +24,17 @@ app.use((req, res, next) => {
     next(); // sin esto la petición se queda colgada para siempre
 });
 
-// ── RUTAS ─────────────────────────────────────────────────────────────────────
-// Ruta de prueba — comprueba que el servidor está vivo
-app.get('/', (req, res) => {
-    res.json({ mensaje: 'Servidor Taskflow funcionando 🚀' });
-});
 
+// Ruta de prueba — comprueba que el servidor está vivo
+// app.get('/', (req, res) => {
+    // res.json({ mensaje: 'Servidor Taskflow funcionando 🚀' });
+// });
+
+// 4. RUTAS
 // Rutas de tareas — montadas bajo /api/v1/tasks
 app.use('/api/v1/tasks', taskRoutes);
 
-// ── MANEJO GLOBAL DE ERRORES ──────────────────────────────────────────────────
+// 5. MANEJO DE ERRORES (Fase C) ──────────────────────────────────────────────────
 // Este middleware de 4 parámetros captura todos los errores del servidor
 // Debe estar SIEMPRE al final, después de todas las rutas
 app.use((err, req, res, next) => {
@@ -52,7 +49,8 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-// ── ARRANCAR SERVIDOR ─────────────────────────────────────────────────────────
+
+// 6. ARRANQUE SERVIDOR ─────────────────────────────────────────────────────────
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

@@ -9,16 +9,25 @@ function getTasks(req, res) {
 }
 
 function createTask(req, res) {
-  const { title } = req.body;
-
+  
   // VALIDACIÓN
   // llama al servicio → responde con un error si no se cumple la validación
-  if (!title) {
-    return res.status(400).json({ error: "Title is required" });
+  // 1. Verificamos si req.body existe (por si mandan el body vacío en Thunder Client)
+  if (!req.body) {
+    return res.status(400).json({ error: "El cuerpo de la petición no puede estar vacío" });
   }
 
-  const nueva = service.crearTarea({ title });
+  const { title } = req.body;
 
+  // 2. Validación defensiva 
+  if (!title || typeof title !== 'string' || title.trim().length < 3) {
+    return res.status(400).json({ 
+      error: "El título es obligatorio, debe ser un texto y tener al menos 3 caracteres." 
+    });
+  }
+
+  // Usamos .trim() para que no nos guarden espacios vacíos raros
+  const nueva = service.crearTarea({ title: title.trim() });
   res.status(201).json(nueva);
 }
 
