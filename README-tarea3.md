@@ -152,6 +152,21 @@ Se ha elegido una estructura clara que separa las responsabilidades del código 
 
         Middleware de Manejo de Errores (Global): Implementado con 4 parámetros (err, req, res, next). Captura cualquier excepción en el flujo de ejecución, loguea el error en el servidor y devuelve una respuesta HTTP controlada (500) al cliente, evitando fugas de información técnica sensible.
 
+
+Arquitectura Desacoplada: Explica que el proyecto sigue un modelo de separación donde el cliente y el servidor residen en directorios distintos.
+
+Configuración de Despliegue: Menciona que has utilizado rewrites en Vercel para mapear las rutas de la API hacia la carpeta /server.
+
+Ejemplos de Interacción Real: Actualiza tus ejemplos de la Fase C con la URL real de Vercel. Por ejemplo:
+
+GET: https://taskflow3-tarea2y1.vercel.app/api/v1/tasks.
+
+3. Bitácora de Desarrollo (Último paso)
+En tu sección de "Registro de Evolución", añade un punto número 5:
+
+Problema: Error 404 en el despliegue de Vercel debido a la estructura de subcarpetas.
+
+Solución: Implementación de un archivo de configuración vercel.json en la raíz para redirigir el tráfico hacia el punto de entrada del servidor en /server/index.js
    
         
 
