@@ -1,6 +1,7 @@
 // ── CONFIGURACIÓN ─────────────────────────────────────────────────────────────
 // Cargamos el puerto desde .env — si no existe lanza un error y para el servidor
 // 1. IMPORTACIONES ───────────────────────────────────────────────────────────────
+
 const { PORT } = require('./config/env');
 const express = require('express');
 const cors    = require('cors');
