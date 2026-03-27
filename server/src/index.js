@@ -27,9 +27,9 @@ app.use((req, res, next) => {
 
 
 // Ruta de prueba — comprueba que el servidor está vivo
-// app.get('/', (req, res) => {
-    // res.json({ mensaje: 'Servidor Taskflow funcionando 🚀' });
-// });
+app.get('/', (req, res) => {
+    res.json({ mensaje: 'Servidor Taskflow funcionando 🚀' });
+});
 
 // 4. RUTAS
 // Rutas de tareas — montadas bajo /api/v1/tasks
@@ -50,6 +50,7 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Error interno del servidor' });
 });
 
+module.exports = app;
 
 // 6. ARRANQUE SERVIDOR ─────────────────────────────────────────────────────────
 app.listen(PORT, () => {
