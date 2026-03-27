@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:3000/api/v1/tasks';
+const BASE_URL = "https://taskflow3-tarea2y1.vercel.app/api/v1/tasks";
 
 // 1. Obtener todas las tareas (GET)
 export const fetchTasks = async () => {
