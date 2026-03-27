@@ -6,6 +6,13 @@ if (!process.env.PORT) {
     throw new Error('El puerto no está definido en .env');
 }
 
+module.exports = {
+    // Si process.env.PORT no existe (como en Vercel), usa el 3000 por defecto
+    PORT: process.env.PORT || 3000,
+    // Traemos la URI de MongoDB
+    MONGODB_URI: process.env.MONGODB_URI
+};
+
 
 if (!process.env.MONGODB_URI) {
     throw new Error('La variable MONGODB_URI no está definida');
