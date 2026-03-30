@@ -1,4 +1,5 @@
-const BASE_URL = "https://taskflow3-tarea2y1.vercel.app/api/v1/tasks";
+const BASE_URL = "/api/v1/tasks"; // Al quitar el dominio, funcionará TANTO en local como en Vercel automáticamente
+
 
 // 1. Obtener todas las tareas (GET)
 export const fetchTasks = async () => {
