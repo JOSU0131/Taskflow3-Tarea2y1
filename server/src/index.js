@@ -15,21 +15,32 @@ const app = express();
 app.use(cors()); // <--- Permite que tu web hable con el server
 app.use(express.json()); // <--- Permite leer los JSON que envías
 
+
+
+
+
+
 // Middleware de auditoría — registra cada petición en consola
 app.use((req, res, next) => {
-    const inicio = Date.now();
+
+    const inicio = performance.now();
     res.on('finish', () => {
-        const duracion = Date.now() - inicio;
-        console.log(`[${req.method}] ${req.originalUrl} - ${res.statusCode} (${duracion}ms)`);
+        const duracion = performance.now() - inicio;
+        console.log(`[${req.method}] ${req.originalUrl} - Estado: ${res.statusCode} (${duracion.toFixed(2)}ms)`);
     });
     next(); // sin esto la petición se queda colgada para siempre
 });
 
 
-// Ruta de prueba — comprueba que el servidor está vivo
+
+
 app.get('/', (req, res) => {
-    res.json({ mensaje: 'Servidor Taskflow funcionando 🚀' });
+    res.json({ mensaje: 'Servidor Taskflow funcionando 🚀' });  
 });
+// Ruta de prueba — comprueba que el servidor está vivo
+
+
+
 
 // 4. RUTAS
 // Rutas de tareas — montadas bajo /api/v1/tasks
