@@ -52,6 +52,7 @@ app.use((err, req, res, next) => {
 
 
 
+
 // 6. ARRANQUE SERVIDOR ─────────────────────────────────────────────────────────
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);

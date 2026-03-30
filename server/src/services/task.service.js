@@ -1,6 +1,6 @@
 
 // SIMULANDO una BASE DE DATOS en memoria para las tareas
-let tasks = [];
+let tasks = [];  // Array en memoria
 
 function obtenerTodas() {
   return tasks;

@@ -161,7 +161,7 @@ Ejemplos de Interacción Real: Actualiza tus ejemplos de la Fase C con la URL re
 
 GET: https://taskflow3-tarea2y1.vercel.app/api/v1/tasks.
 
-3. Bitácora de Desarrollo (Último paso)
+### 3. Bitácora de Desarrollo (Último paso)
 En tu sección de "Registro de Evolución", añade un punto número 5:
 
 Problema: Error 404 en el despliegue de Vercel debido a la estructura de subcarpetas.
@@ -173,7 +173,7 @@ Solución: Implementación de un archivo de configuración vercel.json en la ra�
 ### FASE BONUS. Configuración de Vercel
 
 
-## Registro de Evolución y Soluciones (Bitácora de Desarrollo)
+#### Registro de Evolución y Soluciones (Bitácora de Desarrollo)
 A continuación, se resumen los pasos realizados y problemas solventados durante esta sesión de desarrollo:
 
 1. Diagnóstico Inicial y Protocolos
