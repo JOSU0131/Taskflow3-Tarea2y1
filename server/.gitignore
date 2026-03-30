@@ -2,3 +2,10 @@ node_modules/
 .env
 .vercel
 .env*.local
+.vs/
+.vscode/
+*.sln
+*.user
+node_modules/
+.env
+.vercel/
