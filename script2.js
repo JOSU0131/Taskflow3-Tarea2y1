@@ -349,51 +349,48 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── AÑADIR / GUARDAR TAREA ────────────────────────────────────────────────
 
     // - Nueva lógica de guardado sincronizado
-    taskForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    if (taskForm) {
+        taskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-        const titleInput = document.getElementById('newTaskTitle');
-        const categoryInput = document.getElementById('newTaskCategory');
-        const priorityInput = document.getElementById('newTaskPriority');
-        const submitBtn = taskForm.querySelector('button[type="submit"]');
+            const titleInput = document.getElementById('newTaskTitle');
+            const categoryInput = document.getElementById('newTaskCategory');
+            const priorityInput = document.getElementById('newTaskPriority');
+            const submitBtn = taskForm.querySelector('button[type="submit"]');
+            const title = titleInput.value.trim();
 
-        const title = titleInput.value.trim();
-        if (!title) return;
+            if (!title) return;
 
-        // --- FASE D: ESTADO DE CARGA ---
-        // Bloqueamos el botón para que el usuario sepa que algo está pasando
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Guardando...';
+            // FASE D: ESTADO DE CARGA (El botón cambia mientras esperamos)
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Guardando...';
 
-        try {
-            // Enviamos la tarea al servidor y ESPERAMOS la respuesta oficial
-            const tareaOficial = await createTask({
-                title: title,
-                priority: priorityInput.value, // Enviamos el texto (Alta/Media/Baja)
-                category: categoryInput.value
-            });
+            try {
+                // 1. Enviamos al servidor y ESPERAMOS la tarea con su ID oficial
+                const tareaOficial = await createTask({
+                    title: title,
+                    priority: priorityInput.value, 
+                    category: categoryInput.value
+                });
 
-            // --- SOLUCIÓN AL ID Y AL RENDERIZADO ---
-            // Guardamos en nuestra lista local la tarea QUE NOS DEVUELVE EL SERVIDOR
-            // (Esa ya trae el ID correcto del ticket)
-            tasks.push(tareaOficial);
+                // 2. Solo si el servidor responde OK, la añadimos a nuestra lista
+                tasks.push(tareaOficial); 
+                
+                // 3. LIMPIAMOS Y DIBUJAMOS AL INSTANTE
+                titleInput.value = '';
+                renderTasks(); // Esto hace que aparezca sin tocar otros botones
 
-            // Limpiamos el formulario
-            titleInput.value = '';
-            
-            // ¡IMPORTANTE! Forzamos a la pantalla a dibujarse ahora mismo
-            renderTasks(); 
-
-        } catch (error) {
-            // --- FASE D: ESTADO DE ERROR ---
-            alert("¡Vaya! El servidor no pudo guardar la tarea. Inténtalo de nuevo.");
-            console.error(error);
-        } finally {
-            // Restauramos el botón pase lo que pase
-            submitBtn.disabled = false;
-            submitBtn.textContent = '+ Añadir';
-        }
-    });
+            } catch (error) {
+                // FASE D: ESTADO DE ERROR (Lo que viste en tu imagen)
+                alert("¡Vaya! El servidor no pudo guardar la tarea. Inténtalo de nuevo.");
+                console.error(error);
+            } finally {
+                // Restauramos el botón
+                submitBtn.disabled = false;
+                submitBtn.textContent = '+ Añadir';
+            }
+        });
+    }
 
 
 
