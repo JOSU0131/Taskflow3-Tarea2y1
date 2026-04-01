@@ -348,48 +348,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── AÑADIR / GUARDAR TAREA ────────────────────────────────────────────────
 
-    if (taskForm) {
-        taskForm.addEventListener('submit', async (e) => {
+    // - Nueva lógica de guardado sincronizado
+    taskForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
+        const titleInput = document.getElementById('newTaskTitle');
+        const categoryInput = document.getElementById('newTaskCategory');
+        const priorityInput = document.getElementById('newTaskPriority');
+        const submitBtn = taskForm.querySelector('button[type="submit"]');
 
-            e.preventDefault();
+        const title = titleInput.value.trim();
+        if (!title) return;
 
-            const titleInput    = document.getElementById('newTaskTitle');
-            const categoryInput = document.getElementById('newTaskCategory');
-            const priorityInput = document.getElementById('newTaskPriority');
-            const title         = titleInput.value.trim();
+        // --- FASE D: ESTADO DE CARGA ---
+        // Bloqueamos el botón para que el usuario sepa que algo está pasando
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Guardando...';
 
-            if (!title) return;
-
-
-
-
-            if (editingTaskId) {
-                // Modo edición: actualiza la tarea existente
-                tasks = tasks.map(t => t.id === editingTaskId
-                    ? { ...t, title, category: categoryInput.value, priority: priorityInput.value }
-                    : t
-                );
-                cancelEdit();
-            } else {
-                // Modo añadir: crea tarea nueva con id = timestamp actual
-                tasks.push({
-                    id:       Date.now().toString(),
-                    title,
-                    category: categoryInput.value,
-                    priority: priorityInput.value,
-                });
-            }
-
-            
-            await createTask({
+        try {
+            // Enviamos la tarea al servidor y ESPERAMOS la respuesta oficial
+            const tareaOficial = await createTask({
                 title: title,
-                priority:  priorityInput.value === 'Alta' ? 3 :
-                            priorityInput.value === 'Media' ? 2 : 1
-                ,category: categoryInput.value
+                priority: priorityInput.value, // Enviamos el texto (Alta/Media/Baja)
+                category: categoryInput.value
             });
-        });
-    }
+
+            // --- SOLUCIÓN AL ID Y AL RENDERIZADO ---
+            // Guardamos en nuestra lista local la tarea QUE NOS DEVUELVE EL SERVIDOR
+            // (Esa ya trae el ID correcto del ticket)
+            tasks.push(tareaOficial);
+
+            // Limpiamos el formulario
+            titleInput.value = '';
+            
+            // ¡IMPORTANTE! Forzamos a la pantalla a dibujarse ahora mismo
+            renderTasks(); 
+
+        } catch (error) {
+            // --- FASE D: ESTADO DE ERROR ---
+            alert("¡Vaya! El servidor no pudo guardar la tarea. Inténtalo de nuevo.");
+            console.error(error);
+        } finally {
+            // Restauramos el botón pase lo que pase
+            submitBtn.disabled = false;
+            submitBtn.textContent = '+ Añadir';
+        }
+    });
+
+
 
     // ── ELIMINAR / EDITAR / CAMBIAR PRIORIDAD (click en la lista) ─────────────
 
