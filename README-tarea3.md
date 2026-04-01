@@ -279,8 +279,14 @@ Sincronización de Datos: Se detectó que el frontend enviaba campos en español
 
         Solución: Se ajustaron los objetos JSON en script2.js para asegurar la compatibilidad total con el servidor.
 
-"6. Solución Definitiva de Despliegue (Vercel):
+6. Solución Definitiva de Despliegue (Vercel):
 
 Problema: El proyecto lanzaba un error 404 en Vercel porque la estructura de carpetas era demasiado profunda (client/src).
 
-Solución: Simplifiqué la arquitectura eliminando la carpeta client y moviendo el index.html a la raíz. Además, configuré un archivo vercel.json con rewrites para que todas las peticiones a /api se redirijan correctamente al servidor Node.js. Esto permitió que la app fuera accesible públicamente sin errores de ruta."        
+Solución: Simplifiqué la arquitectura eliminando la carpeta client y moviendo el index.html a la raíz. Además, configuré un archivo vercel.json con rewrites para que todas las peticiones a /api se redirijan correctamente al servidor Node.js. Esto permitió que la app fuera accesible públicamente sin errores de ruta.  
+
+7. Fallo de MIME type en Despliegue:
+
+Problema: Al mover archivos a la raíz, la configuración de rewrites de Vercel enviaba el contenido de index.html cuando el navegador pedía archivos .js, causando un error de "Expected a JavaScript module script but the server responded with a MIME type of text/html".
+
+Solución: Se ajustó vercel.json para que las rutas estáticas se resuelvan correctamente sin ser interceptadas por la redirección global del HTML.
