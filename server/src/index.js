@@ -4,6 +4,7 @@
 
 const { PORT } = require('./config/env');
 const express = require('express');
+const path = require('path'); // Middleware nativo de Node
 const cors    = require('cors');
 const taskRoutes = require('./routes/task.routes');
 
@@ -21,6 +22,8 @@ app.use(express.json()); // <--- Permite leer los JSON que envías
 
 
 // Middleware de auditoría — registra cada petición en consola
+// - Corregido para subir dos niveles y no interferir con las rutas de la API
+app.use(express.static(path.join(__dirname, '../../')));
 app.use((req, res, next) => {
 
     const inicio = performance.now();
@@ -34,9 +37,9 @@ app.use((req, res, next) => {
 
 
 
-app.get('/', (req, res) => {
-    res.json({ mensaje: 'Servidor Taskflow funcionando 🚀' });  
-});
+// app.get('/', (req, res) => {
+//    res.json({ mensaje: 'Servidor Taskflow funcionando 🚀' });  
+// });
 // Ruta de prueba — comprueba que el servidor está vivo
 
 

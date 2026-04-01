@@ -1,4 +1,6 @@
-# VISIÓN GENERAL (antes de empezar)
+# Proyecto Taskflow: Arquitectura Cliente-Servidor (API REST)
+
+**VISIÓN GENERAL (antes de empezar)**
 Este proyecto representa la transición de una aplicación monolítica con persistencia local hacia una arquitectura desacoplada Cliente-Servidor, utilizando una API REST construida en Node.js/Express.
 
 ## Principios del diseño:
@@ -41,6 +43,10 @@ No hay LocalStorage: Asegúrate de que en script2.js las funciones de guardar en
 Probé a hacer Delete, en mi web aparece como "eliminar" o "X" en la tarea, y en la terminal del backend salia el mensaje "[POST] /api/v1/tasks - 201 (0ms)", lo que significabas que la orden de "borrar" no está llegando al servidor. Y además persistian las tareas.
 
 tuve que buscar en script2.js y reemplazar el codigo por:
+
+**NOTA**
+    *"Durante las pruebas, detecté que el borrado fallaba porque el frontend usaba IDs locales. Refactoricé el código para que el cliente espere al servidor y utilice únicamente el ID oficial, asegurando que la orden DELETE llegue al recurso correcto."*
+
 
      if (deleteBtn) {
     const taskId = deleteBtn.dataset.id;
@@ -126,23 +132,22 @@ Pruebas de Integración en Thunder Client
     **BONUS**, al solicitar otro GET en misma URL, salio "Status: 200 OK", lo que indica que el borrado fue un exito y no hay contenido adicional que devolver.
 
 
-### FASE D — Documentación Arquitectónica
+### FASE D -  Transparencia de red y consumo desde el frontend
 
 Arquitectura de Carpetas
 Se ha elegido una estructura clara que separa las responsabilidades del código (Separation of Concerns):
 
     /root
-    ├── /server (Backend)
-    │   ├── index.js          # Punto de entrada del servidor Express y Middlewares
-    │   └── package.json      # Dependencias (Express, Cors, Nodemon)
-    └── /client (Frontend)
-        ├── /src
-        │   ├── api.js        # Capa de Red (Abstracción de peticiones Fetch)
-        │   ├── script2.js    # Lógica de Negocio y Manipulación del DOM
-        │   └── style.css     # Estilos visuales
-        └── index.html        # Estructura principal y carga de módulos
+    ├── vercel.json           # Configuración de rutas para la nube (Rewrites)
+    ├── index.html            # Estructura principal (Raíz)
+    ├── api.js                # Capa de Red (Fetch)
+    ├── script2.js            # Lógica de Negocio y DOM
+    └── /server               # Backend
+        └── /src
+            └── index.js      # Punto de entrada de Express
 
-    - Funcionamiento de Middlewares (Terminología Técnica)
+
+- Funcionamiento de Middlewares (Terminología Técnica)
 
         El servidor utiliza Middlewares para procesar las peticiones antes de que lleguen a las rutas finales:
 
@@ -161,6 +166,19 @@ Ejemplos de Interacción Real: Actualiza tus ejemplos de la Fase C con la URL re
 
 GET: https://taskflow3-tarea2y1.vercel.app/api/v1/tasks.
 
+Gestión de estados de red en UI
+Se ha refactorizado la interfaz para gestionar la "física del mundo real":
+
+Estado de Carga: Al añadir tareas, el botón muestra "Guardando..." y se deshabilita para evitar peticiones duplicadas.
+
+Estado de Éxito: La UI se actualiza instantáneamente tras recibir el 201 Created del servidor, sin necesidad de refrescar.
+
+Estado de Error: Implementación de bloques try/catch que lanzan avisos visuales si el servidor no responde o devuelve un error 500.
+
+
+
+
+
 ### 3. Bitácora de Desarrollo (Último paso)
 En tu sección de "Registro de Evolución", añade un punto número 5:
 
@@ -168,12 +186,52 @@ Problema: Error 404 en el despliegue de Vercel debido a la estructura de subcarp
 
 Solución: Implementación de un archivo de configuración vercel.json en la raíz para redirigir el tráfico hacia el punto de entrada del servidor en /server/index.js
    
-        
+Problemas Identificados y Resueltos:
 
-### FASE BONUS. Configuración de Vercel
+Sincronización de IDs (Frontend vs Backend):
+
+Fallo: El frontend generaba IDs temporales con Date.now(), mientras que el servidor asignaba sus propios IDs en memoria. Esto causaba errores 404/500 al intentar borrar tareas recién creadas.
+
+Solución: Se refactorizó la lógica de creación para que el frontend espere la respuesta oficial del servidor y use el ID devuelto por Node.js.
+
+Renderizado Asíncrono (El fallo de la "vista"):
+
+Fallo: Al añadir una tarea, el tutor no la veía al instante porque el código no disparaba el re-renderizado automático tras el POST. Solo se veía al cambiar manualmente de sección.
+
+Solución: Se integró la llamada a renderTasks() dentro del bloque de éxito (try/await) del formulario, garantizando una UI reactiva.
+
+Transparencia de Red y Estados (Fase D):
+
+Se implementó el manejo de Promesas para gestionar la latencia.
+
+Carga: Bloqueo de botones y placeholders visuales durante las peticiones.
+
+Error: Captura de excepciones de red para evitar que la App se quede "congelada" ante fallos del servidor.
+
+Persistencia Volátil (Vercel):
+
+Se aclara que, al no utilizar una base de datos persistente (MongoDB), los datos residen en la memoria RAM del proceso de Node.js. En Vercel (Serverless), esto implica que las tareas se reinician tras periodos de inactividad.        
+
+### FASE BONUS. Solución del Despliegue en Vercel
+Uno de los mayores desafíos fue el despliegue en Vercel, no conseguia encontrar la solución y la IA (gemini) no paraba de dar soluciones en bucle.
+ Aquí resumo los pasos que dieron la solución final:
+
+El problema del 404: Inicialmente, Vercel no encontraba la aplicación porque el archivo index.html estaba escondido en subcarpetas (client/src).
+
+La Solución Estructural: - Eliminé la carpeta client y moví el index.html, api.js y script2.js a la raíz del proyecto.
+
+Esto permitió que Vercel detectara el punto de entrada de la web de forma automática.
+
+Configuración de Rutas (vercel.json): Implementé rewrites para redirigir todo el tráfico de /api/* hacia nuestro servidor en /server/index.js.
+
+Sincronización de IDs: Corregí un fallo donde el borrado fallaba en la nube. El frontend intentaba borrar con un ID inventado, pero ahora espera el ID oficial que genera el servidor tras el POST.
+
+**BONUS**
+Servidor de Archivos Estáticos: En el index.js local, configuré app.use(express.static(path.join(__dirname, '../../'))) para que el servidor Node pudiera servir la web en localhost:3000 exactamente igual que lo hace Vercel.
 
 
-#### Registro de Evolución y Soluciones (Bitácora de Desarrollo)
+
+### Registro de Evolución y Soluciones (Bitácora de Desarrollo)
 A continuación, se resumen los pasos realizados y problemas solventados durante esta sesión de desarrollo:
 
 1. Diagnóstico Inicial y Protocolos
@@ -182,6 +240,9 @@ Problema: Error de carga de archivos y CORS al usar el protocolo.
 Solución: Migración a un entorno de servidor local usando la extensión Live Server, permitiendo el uso de módulos de JavaScript.
 
 Tuve que añadir en index.js "app.use(cors())" para permitir la comunicación entre el puerto 5500 (web) y el 3000 (servidor).
+
+**NOTA**    
+    *"Finalmente, se configuró el servidor Express para servir archivos estáticos, permitiendo probar la app completa en el puerto 3000 sin depender de extensiones externas."*
 
 2. Capa de Red y Modularización
 Problema: El código estaba saturado de lógica mezclada y persistencia en LocalStorage.
@@ -217,3 +278,9 @@ Duplicidad de Funciones: En el archivo api.js existían declaraciones repetidas 
 Sincronización de Datos: Se detectó que el frontend enviaba campos en español (titulo, prioridad) mientras el backend esperaba inglés (title, priority).
 
         Solución: Se ajustaron los objetos JSON en script2.js para asegurar la compatibilidad total con el servidor.
+
+"6. Solución Definitiva de Despliegue (Vercel):
+
+Problema: El proyecto lanzaba un error 404 en Vercel porque la estructura de carpetas era demasiado profunda (client/src).
+
+Solución: Simplifiqué la arquitectura eliminando la carpeta client y moviendo el index.html a la raíz. Además, configuré un archivo vercel.json con rewrites para que todas las peticiones a /api se redirijan correctamente al servidor Node.js. Esto permitió que la app fuera accesible públicamente sin errores de ruta."        
