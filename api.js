@@ -21,9 +21,17 @@ export const createTask = async (task) => {
 
 // 3. Eliminar tarea (DELETE)
 export const deleteTask = async (id) => {
+  // Verificamos que el ID exista antes de disparar la red
+  if (!id) throw new Error('ID de tarea no válido');
+
   const res = await fetch(`${BASE_URL}/${id}`, {
     method: 'DELETE'
   });
-  if (!res.ok) throw new Error('Error al eliminar tarea');
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'No se pudo borrar la tarea del servidor');
+  }
+  return true;
 };
 
