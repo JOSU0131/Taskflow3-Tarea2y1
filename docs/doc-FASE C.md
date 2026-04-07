@@ -30,24 +30,6 @@ GET y Persistencia: Se confirmó mediante la consola de VS Code que las peticion
 
 
 
-### Tus respuestas para la Tarea
-
-¿Qué pasa cuando creas una tarea?
-Respuesta: La tarea se envía al servidor, el formulario se limpia y la nueva tarea aparece en la lista visualmente.
-
-¿Aparece?
-Respuesta: Sí, aparece inmediatamente en la sección "Mis tareas" gracias a que tras el guardado se ejecuta loadTasks().
-
-¿Error?
-Respuesta: No hay errores en la consola del navegador; el mensaje de Tailwind es solo una advertencia de optimización que no afecta al flujo.
-
-¿Qué dice la consola del navegador?
-Respuesta: No muestra errores rojos. En la pestaña "Network" (Red) se puede ver la petición POST con estado 201 Created.
-
-¿Qué dice la consola del backend?
-Respuesta: Dice exactamente POST /api/v1/tasks - 201. 
-Esto confirma que el servidor recibió los datos y los procesó correctamente.
-
 ## La Prueba de Fuego (Persistencia)
 Para poder decir con total seguridad que "Los datos persisten, el GET funciona", haz este último test:
 
@@ -58,12 +40,6 @@ Si la tarea que acabas de crear sigue ahí, es porque al cargar la página, tu c
 **Tras recargar la página, las tareas se mantienen. Esto demuestra que los datos persisten en el servidor y que el método GET funciona correctamente**
 
 
-## Repasa esto antes de entregar:
-
-POST funciona: Ya lo viste con el 201.
-GET funciona: Se confirma si al entrar/recargar ves las tareas.
-
-No hay LocalStorage: Asegúrate de que en script2.js las funciones de guardar en localStorage estén borradas o comentadas, para que todo dependa de la API.
 
 ## Pruebas de Eliminar tareas / DELETE
 
@@ -175,7 +151,7 @@ Para garantizar que el proceso "daemon" de Node.js no muera ante un error, se im
 
 
 ### RESUMEN GLOBAL DE PRUEBAS
-
+---
 | Escenario            | Método    | Resultado      | Comportamiento esperado |
 | :---                 | :---      | :---           | :--- |
 | **POST sin título**  | `POST` | `400 Bad Request` | El controlador detiene la petición antes de llegar al servicio. |
@@ -183,3 +159,82 @@ Para garantizar que el proceso "daemon" de Node.js no muera ante un error, se im
 | **DELETE ID falso**  | `DELETE` | `404 Not Found` | El servicio lanza un error que el middleware global traduce a 404.  |
 
 | **GET General**      | `GET`    | `200 OK`        | Se recuperan las tareas de la memoria de forma exitosa. |
+---
+
+Se validaron los contratos de la API forzando respuestas de error y éxito:
+
+    Creación Exitosa (201 Created): Se validó el envío de JSON { "title": "ORCOS" }. El servidor asignó automáticamente un ID único y respondió con el objeto completo, confirmando la persistencia en memoria.
+
+    Validación de Frontera (400 Bad Request): Se testeó el envío de cuerpos vacíos. El controlador bloqueó la entrada devolviendo un mensaje de error semántico: "El título es obligatorio".
+
+    Gestor de Recursos Inexistentes (404 Not Found): Al intentar borrar un ID ficticio (/tasks/999999), el Middleware Global de Errores capturó la excepción y devolvió un código 404, evitando la exposición de errores internos del sistema.
+
+    Borrado Exitoso (204 No Content): Se confirmó que tras un DELETE válido, el servidor responde sin cuerpo (204) y los GET posteriores devuelven la lista actualizada.
+
+
+
+#### Documentación de colección de errores intencionados
+
+Se han realizado pruebas exhaustivas utilizando **Thunder Client** para asegurar la robustez de la API (validar las respuestas del servidor):
+
+Pruebas de Integración en Thunder Client
+
+    - Creación de tarea Exitosa (POST)
+    Se realizó una petición POST enviando un objeto JSON con un título válido "ORCOS".
+    Se envió un JSON { "title": "ORCOS" } al endpoint /api/v1/tasks. El servidor respondió con un código STATUS: "201 Created", confirmado en la terminal de VS Code backend server como "[POST] /api/v1/tasks - 201."
+        
+        Body JSON
+            {
+            "title": "ORCOS"
+            }
+
+            Respuesta: Status: 201 Created
+                {
+                "id": "1774626427865",
+                "title": "ORCOS",
+                "completed": false
+                }
+            El servidor procesó la entrada, asignó un ID único de forma automática y respondió con el código "201 Created", confirmando la persistencia del recurso en la memoria
+
+    - Validación de Frontera (POST vacío)
+    Se verifica que el controlador actúa como un filtro de seguridad. Al realizar una petición POST con un Body vacío ({}) y con Body (sin nada), el servidor rechaza la entrada con un código "400 Bad Request", evitando la persistencia de datos corruptos o incompletos.
+    
+    El servidor THUNDER respondió con Status: "400 Bad Request", demostrando que el controlador bloquea datos inválidos y el API ahora es "Inexpugnable".
+
+    Respuesta del servidor:
+        JSON
+        {
+        "error": "El título es obligatorio, debe ser un texto y tener al menos 3 caracteres."
+        }
+    
+    Respuesta en terminal de server: "[POST] /api/v1/tasks - 400 (3ms)"
+
+
+    - Borrado de recurso Inexistente (DELETE 404)
+    Se intentó eliminar la tarea inexistene con ID "tasks/999999". El servidor respondió con codigo "404 Not Found", confirmando que el middleware global de errores captura y mapea correctamente las excepciones.
+
+    Respuesta del servidor:
+        JSON
+        {
+        "error": "Recurso no encontrado"
+        }
+
+    Respuesta en terminal de server: "[DELETE] /api/v1/tasks/999999 - 404 (1ms)"
+
+
+    - Borrado Exitoso (DELETE 204)
+    Se realizó la eliminación de una tarea válida previamente creada  (ID "1774625429648", título "ORCOS"). Creada con petición POST url: http://localhost:3000/api/v1/tasks/
+
+    Para su eliminacion exitosa, se visualizó su id mediante un GET, URL: http://localhost:3000/api/v1/tasks + SEND. Y la eliminación se realizo mediante un DELETE, URL: http://localhost:3000/api/v1/tasks/1774625429648 + SEND. 
+
+    El servidor procesó la solicitud correctamente y respondió con el código "204 No Content", lo que indica que la acción se completó con éxito y no hay contenido adicional que devolver. 
+
+    **BONUS**, al solicitar otro GET en misma URL, salio "Status: 200 OK", lo que indica que el borrado fue un exito y no hay contenido adicional que devolver.
+
+Duplicidad de Funciones: En el archivo api.js existían declaraciones repetidas de funciones como createTask y deleteTask, lo que causaba que el script dejara de funcionar.
+
+        Solución: Se refactorizó api.js eliminando los imports innecesarios y dejando únicamente las funciones exportables de la API.
+
+
+
+
