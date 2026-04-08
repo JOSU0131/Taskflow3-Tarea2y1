@@ -250,8 +250,8 @@ document.addEventListener('DOMContentLoaded', () => {
         editingTaskId = taskId;
 
         const titleInput    = document.getElementById('newTaskTitle');
-        const categoryInput = document.getElementById('newTaskCategory');
-        const priorityInput = document.getElementById('newTaskPriority');
+        const categoryInput = document.getElementById('TaskCategory');
+        const priorityInput = document.getElementById('TaskPriority');
         const submitBtn     = taskForm?.querySelector('button[type="submit"]');
 
         if (titleInput)    titleInput.value    = task.title;
@@ -354,8 +354,8 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
 
             const titleInput = document.getElementById('newTaskTitle');
-            const categoryInput = document.getElementById('newTaskCategory');
-            const priorityInput = document.getElementById('newTaskPriority');
+            const categoryInput = document.getElementById('TaskCategory');
+            const priorityInput = document.getElementById('TaskPriority');
             const submitBtn = taskForm.querySelector('button[type="submit"]');
             const title = titleInput.value.trim();
 
