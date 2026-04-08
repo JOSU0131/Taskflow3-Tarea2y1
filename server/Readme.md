@@ -290,6 +290,10 @@ Solución: Estandarizar objetos JSON en `script2.js`.
 Problema: Vercel enviaba `index.html` cuando el navegador pedía archivos `.js`, causando error de tipo MIME.
 Solución: Ajustar `vercel.json` para resolver rutas estáticas sin interceptar con el rewrite del HTML.
 
+- **Problema con las tags de categoria y prioridad, no aparecen en el vercel**
+Problema: En la app al añadir tareas "x" aparece el error undefined.
+Solución: Era un problema de nomenclatura (Case Sensitivity)
+    Se ha aplicado la convención camelCase empezando en minúscula para todos los identificadores del proyecto. Esto evita errores de puntero nulo (null) al intentar acceder a elementos del DOM cuyos IDs no coincidían exactamente en mayúsculas/minúsculas entre el documento HTML y la lógica de JavaScript.
 ---
 
 

@@ -250,8 +250,8 @@ document.addEventListener('DOMContentLoaded', () => {
         editingTaskId = taskId;
 
         const titleInput    = document.getElementById('newTaskTitle');
-        const categoryInput = document.getElementById('TaskCategory');
-        const priorityInput = document.getElementById('TaskPriority');
+        const categoryInput = document.getElementById('taskCategory');
+        const priorityInput = document.getElementById('taskPriority');
         const submitBtn     = taskForm?.querySelector('button[type="submit"]');
 
         if (titleInput)    titleInput.value    = task.title;
