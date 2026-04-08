@@ -357,14 +357,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const categoryInput = document.getElementById('taskCategory');
             const priorityInput = document.getElementById('taskPriority');
             const submitBtn = taskForm.querySelector('button[type="submit"]');
+            
             const title = titleInput.value.trim();
-
             if (!title) return;
 
             // FASE D: ESTADO DE CARGA (El botón cambia mientras esperamos)
+            if (submitBtn) {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Guardando...';
-
+            }
             try {
                 // 1. Enviamos al servidor y ESPERAMOS la tarea con su ID oficial
                 const tareaOficial = await createTask({
@@ -386,8 +387,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error(error);
             } finally {
                 // Restauramos el botón
-                submitBtn.disabled = false;
-                submitBtn.textContent = '+ Añadir';
+                if (submitBtn) {  
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '+ Añadir';
+                }    
             }
         });
     }
