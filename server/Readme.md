@@ -328,9 +328,17 @@ Solución en codigo:
             return nuevaTarea;
         }
 
+- **Extra problema con las tags en (task.controller.js)"
+Problema: El problema es una "desconexión de cables" en el Backend. El Frontend está enviando los datos, pero el servidor los ignora.
 
-    
-
+Solución:  Hay que actualizar el "recorrido" que hacen los datos en el servidor. 
+    Codigo:
+            const nueva = service.crearTarea({
+                title: title.trim(),
+                category: category || "Todas",   <-- AÑADIDO
+                priority: priority || "Alta"     <-- AÑADIDO
+            });
+            res.status(201).json(nueva);
     
 ---
 

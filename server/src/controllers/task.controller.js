@@ -31,8 +31,8 @@ function createTask(req, res) {
   // Usamos .trim() para que no nos guarden espacios vacíos raros
   const nueva = service.crearTarea({
     title: title.trim(),
-    category: category.trim(),
-    priority: priority.trim()
+    category: category || "Todas",
+    priority: priority || "Alta"
   });
   res.status(201).json(nueva);
 }
