@@ -291,9 +291,47 @@ Problema: Vercel enviaba `index.html` cuando el navegador pedía archivos `.js`,
 Solución: Ajustar `vercel.json` para resolver rutas estáticas sin interceptar con el rewrite del HTML.
 
 - **Problema con las tags de categoria y prioridad, no aparecen en el vercel**
-Problema: En la app al añadir tareas "x" aparece el error undefined.
-Solución: Era un problema de nomenclatura (Case Sensitivity)
-    Se ha aplicado la convención camelCase empezando en minúscula para todos los identificadores del proyecto. Esto evita errores de puntero nulo (null) al intentar acceder a elementos del DOM cuyos IDs no coincidían exactamente en mayúsculas/minúsculas entre el documento HTML y la lógica de JavaScript.
+Problema: En la app al añadir tareas "x" aparece un error de tags "undefined" en la cateogiria y prioridad de las tareas.
+Solución: Era un problema de nomenclatura (Case Sensitivity) y de **ausencia de campos en el Backend**.
+
+EL Frontend enviaba la categoría y la prioridad, pero el servidor las recibe y las tiraba a la basura porque no saia qué hacer con ellas.
+
+Causa: Desconexión en el flujo de datos del backend. El controlador (task.controller.js) no extraía los nuevos campos del req.body y el servicio (task.service.js) no los incluía en la construcción del objeto final de la tarea.
+
+Solución en codigo:
+    1. En el Controlador (task.controller.js)
+    En "function createTask(req, res) "
+        "Nuevas task" categorias y prioridades
+              const nueva = service.crearTarea({
+                title: title.trim(),
+                category: category.trim(),
+                priority: priority.trim()
+            });
+            res.status(201).json(nueva);
+
+    La función createTask, estaba ignorando todo lo que no era el "title". Necesitamos "atrapar" los nuevos campos del "req.body"
+
+    2. En el Servicio (task.service.js)
+    Aquí es donde se construye el objeto que se guarda en el array. Actualmente, el objeto nuevaTarea solo tenía id, title y completed
+    
+    En "crearTarea(data)"
+        function crearTarea(data) {
+            const nuevaTarea = {
+                id: Date.now().toString(),
+                title: data.title,
+                category: data.category, // <-- AÑADIDO
+                priority: data.priority, // <-- AÑADIDO
+                completed: false
+            };
+
+            tasks.push(nuevaTarea);
+            return nuevaTarea;
+        }
+
+
+    
+
+    
 ---
 
 

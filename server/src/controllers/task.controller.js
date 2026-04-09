@@ -12,22 +12,28 @@ function createTask(req, res) {
   
   // VALIDACIÓN
   // llama al servicio → responde con un error si no se cumple la validación
-  // 1. Verificamos si req.body existe (por si mandan el body vacío en Thunder Client)
+  // Verificamos si req.body existe (por si mandan el body vacío en Thunder Client)
   if (!req.body) {
     return res.status(400).json({ error: "El cuerpo de la petición no puede estar vacío" });
   }
 
-  const { title } = req.body;
+  // 1. Extraemos los 3 campos que envía el Frontend
+  const { title, category, priority } = req.body;
 
-  // 2. Validación defensiva 
+  // Validación defensiva 
   if (!title || typeof title !== 'string' || title.trim().length < 3) {
     return res.status(400).json({ 
       error: "El título es obligatorio, debe ser un texto y tener al menos 3 caracteres." 
     });
   }
 
+  // 2. Se los pasamos TODOS al servicio
   // Usamos .trim() para que no nos guarden espacios vacíos raros
-  const nueva = service.crearTarea({ title: title.trim() });
+  const nueva = service.crearTarea({
+    title: title.trim(),
+    category: category.trim(),
+    priority: priority.trim()
+  });
   res.status(201).json(nueva);
 }
 

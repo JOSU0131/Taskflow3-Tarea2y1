@@ -10,6 +10,8 @@ function crearTarea(data) {
   const nuevaTarea = {
     id: Date.now().toString(),
     title: data.title,
+    category: data.category,
+    priority: data.priority,
     completed: false
   };
 
